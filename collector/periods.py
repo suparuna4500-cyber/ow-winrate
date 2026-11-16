@@ -182,7 +182,8 @@ def update():
         p = fetch(info["prev"])
         cur_slug = p and p[1].get("next")
     today = datetime.date.today().isoformat()
-    idx["current"] = {"id": cur_slug, "title": info["title"], "ja": ja_name(info["title"]), "start": info["start"]}
+    idx["current"] = {**(idx.get("current") or {}), "id": cur_slug, "title": info["title"],
+                      "ja": ja_name(info["title"]), "start": info["start"]}
     # 新しく終わった期間を遡って追加
     slug, guard = info.get("prev"), 0
     while slug and slug not in known and guard < 3:
@@ -197,6 +198,51 @@ def update():
                 save_period(slug, pinfo, combos, idx)
                 print(f"periods: {slug} {len(combos)}件")
         slug, guard = pinfo.get("prev"), guard + 1
+    write_index(idx)
+
+
+def ko_name(title):
+    """ネクソンのお知らせ題名（例: 탈론의 지배 - 5시즌 중간 패치…）→ シーズン5 後半"""
+    m = re.search(r"(\d+)\s*시즌", title or "")
+    if not m:
+        return title
+    return f"シーズン{m.group(1)} {'後半' if '중간' in title else '前半'}"
+
+
+def rollover(news):
+    """ネクソンの最新シーズンのお知らせが変わったら、いま data/latest にある数字
+    （＝終わった期間の最後の値）を全マップ合計だけ過去シーズンとして保存する。"""
+    if not news or not news.get("newsNo") or "시즌" not in (news.get("title") or ""):
+        return
+    idx = load_index()
+    cur = idx.get("current") or {}
+    if not cur.get("newsNo"):
+        cur["newsNo"] = str(news["newsNo"])
+        idx["current"] = cur
+        write_index(idx)
+        return
+    if str(news["newsNo"]) == str(cur["newsNo"]):
+        return
+    d = datetime.datetime.strptime(news["createdAt"].strip(), "%Y.%m.%d").date()
+    start_new = (d - datetime.timedelta(days=1)).isoformat()   # パッチは米国の日付（韓国の告知日の前日）
+    end_old = (d - datetime.timedelta(days=2)).isoformat()
+    old_id = cur.get("id") or f"p-{cur.get('start') or end_old}"
+    if old_id not in {p["id"] for p in idx["periods"]}:
+        import glob
+        combos = {}
+        for f in glob.glob(f"{ROOT}/data/latest/*.json"):
+            key = os.path.basename(f)[:-5]
+            if not key.startswith(("Asia_", "Korea_")):
+                continue
+            c = json.load(open(f))
+            if c.get("m", {}).get("all-maps"):
+                combos[key] = {"h": c["h"], "m": {"all-maps": c["m"]["all-maps"]}}
+        if combos:
+            save_period(old_id, {"title": cur.get("title") or old_id, "ja": cur.get("ja"),
+                                 "start": cur.get("start"), "end": end_old}, combos, idx)
+            print(f"periods: {old_id} を過去シーズンとして保存（{len(combos)}件）")
+    idx["current"] = {"id": f"p-{start_new}", "title": news["title"], "ja": ko_name(news["title"]),
+                      "start": start_new, "newsNo": str(news["newsNo"])}
     write_index(idx)
 
 

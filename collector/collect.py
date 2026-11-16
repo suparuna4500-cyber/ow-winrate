@@ -111,6 +111,9 @@ def devalue(arr):
     return v(0)
 
 
+SEASON_NEWS = {}  # ネクソンの「最新シーズンのお知らせ」（期間の切り替わり検出に使う）
+
+
 def nexon_job(rq, tier, mp):
     nmap = "all" if mp == "all-maps" else mp
     url = (f"https://overwatch.nexon.com/hero/rate?role=all&rq={rq}&rank={tier.lower()}"
@@ -121,6 +124,12 @@ def nexon_job(rq, tier, mp):
         raise RuntimeError(f"{url}: __NUXT_DATA__ not found")
     root = devalue(json.loads(m.group(1)))
     lst = root["data"]["hero-rate-list"]["data"]["list"]
+    if rq == "2" and tier == "All" and mp == "all-maps":
+        try:
+            n = root["data"]["news-season-link"]["data"]["list"][0]
+            SEASON_NEWS.update({k: n.get(k) for k in ("newsNo", "title", "createdAt")})
+        except Exception:
+            pass
     out, meta = {}, {}
     for x in lst:
         hid = norm(x["heroId"])
@@ -249,6 +258,13 @@ def main():
                 print(f"{n}/{len(jobs)}  {time.time()-t0:.0f}s", flush=True)
 
     now = dt.datetime.now(JST).strftime("%Y-%m-%d %H:%M")
+    # シーズン（前半/後半）が切り替わったら、上書きする前の数字を過去シーズンとして保存
+    try:
+        sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+        import periods
+        periods.rollover(SEASON_NEWS)
+    except Exception as e:  # noqa
+        print("rollover skipped:", e)
     for key, per_map in results.items():
         if per_map.get("all-maps"):
             write_combo(key, per_map)

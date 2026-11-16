@@ -148,7 +148,7 @@ tbody tr:hover td{background:var(--surface-2)}
 .tcard{background:var(--cardbg);border-color:color-mix(in srgb, var(--cardbg) 70%, var(--line))}
 .tcard thead th,.tcard td.hero{background:var(--cardbg)}
 .tcard .tth{background:var(--cardbg)}
-.tcard tbody tr:hover td.hero,.tcard tbody tr:hover td.sm{background:color-mix(in srgb, var(--cardbg) 80%, var(--text) 6%)}
+.tcard tbody tr:hover td.hero,.tcard tbody tr:hover td.sm{background:color-mix(in srgb, var(--cardbg) 93%, var(--text))}
 .tcard td,.tcard th{border-bottom:1px solid var(--grid)}
 .tcard{border:1px solid var(--grid-strong)}
 .tcard thead tr:last-child th{border-bottom:1px solid var(--grid-strong)}
@@ -183,6 +183,54 @@ tbody tr:hover td{background:var(--surface-2)}
 #tip .t{font-weight:600;margin-bottom:4px}
 #tip .r{display:flex;justify-content:space-between;gap:14px}
 #tip .r span:first-child{display:flex;align-items:center;gap:5px;color:var(--text-2)}
+.ftoggle{display:none}
+.swipe{display:none}
+@media (max-width:700px){
+  body{font-size:13px}
+  header{padding:12px 12px 4px}
+  .themebar{position:static;justify-content:flex-end;margin-bottom:4px}
+  h1{font-size:17px;line-height:1.35}
+  .sub{font-size:11.5px}
+  main{padding:0 10px 30px}
+  .ftoggle{grid-column:1/-1;display:flex;align-items:center;gap:8px;width:100%;margin:0;font:inherit;font-size:13px;color:var(--text);background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:9px 12px;cursor:pointer;text-align:left}
+  .ftoggle .ft-l{font-weight:700;flex:none}
+  .ftoggle .ft-s{flex:1;color:var(--text-2);font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .ftoggle .ft-a{flex:none;color:var(--muted);transition:transform .15s}
+  .ftoggle[aria-expanded=true] .ft-a{transform:rotate(180deg)}
+  .filters{position:static;display:grid;grid-template-columns:1fr 1fr;gap:8px 10px;padding:10px 0 12px;align-items:end}
+  .filters.closed>.f:not(:first-child){display:none}
+  .filters.closed{padding-bottom:8px}
+  .f{min-width:0}
+  .f select,.f input[type=search]{width:100%;min-width:0;min-height:38px;font-size:14px}
+  .f:first-child,#tRankWrap,#tStableWrap,#tSortWrap{grid-column:1/-1}
+  .seg{display:flex}.seg button{flex:1;min-height:38px}
+  .chk{flex-wrap:wrap;gap:6px 12px;min-height:0}
+  .chk label{white-space:nowrap;font-size:13px;min-height:30px}
+  #tRanks label{flex:0 0 auto}
+  .note{gap:4px 12px;font-size:11.5px}
+  .legend{font-size:11.5px;gap:6px}
+  .legend .ramp{width:120px}
+  .mapnav{gap:6px}
+  .mapnav button{padding:6px 14px;min-height:40px;min-width:44px;flex:none}
+  .mapnav .lbl{display:none}
+  .mapnav b{font-size:16px;margin:0 2px;flex:1;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .mapnav small{display:none}
+  .rgrid,.tgrid2{grid-template-columns:minmax(0,1fr)!important;max-width:none;gap:12px}
+  .card{max-height:none}
+  .rgrid .tcard{max-height:none;overflow:visible}
+  .rgrid .tv thead th{position:static}
+  .rgrid .role{display:none}
+  .rgrid .av{width:26px;height:26px;margin-right:7px}
+  .rgrid .tv td.hero{font-size:13px;padding:4px 6px}
+  .rgrid .rank{width:16px;margin-right:4px}
+  .rgrid .tv td.w{width:54px;font-size:13px}
+  .rgrid .tv td.sm{width:46px;font-size:12px;padding:4px 6px}
+  .tgrid2 .tcard{max-height:78vh}
+  .tgrid2 .nm{display:inline-block;max-width:6.2em;overflow:hidden;text-overflow:ellipsis;vertical-align:middle}
+  .swipe{display:inline}
+  .tth{font-size:15px;padding:8px 10px}
+  .rk{max-width:none}
+}
 footer{max-width:1440px;margin:0 auto;padding:0 20px 30px;color:var(--muted);font-size:11.5px}
 .empty{padding:30px;text-align:center;color:var(--text-2)}
 @media (max-width:700px){header,main,footer{padding-left:10px;padding-right:10px}.bar,.pb{width:40px}th,td{padding:5px 6px}}
@@ -195,9 +243,10 @@ footer{max-width:1440px;margin:0 auto;padding:0 20px 30px;color:var(--muted);fon
   <div class="sub" id="asof"></div>
 </header>
 <main>
-  <div class="filters" role="group" aria-label="絞り込み">
+  <div class="filters" id="filters" role="group" aria-label="絞り込み">
     <div class="f"><label>表示</label>
       <div class="seg" id="view"><button data-v="rank" aria-pressed="true">勝率ランキング</button><button data-v="tiers" aria-pressed="false">ランク帯比較</button></div></div>
+  <button id="fToggle" class="ftoggle" aria-expanded="false" aria-controls="filters"><span class="ft-l">条件</span><span id="fSum" class="ft-s"></span><span class="ft-a">▼</span></button>
     <div class="f"><label for="period">シーズン</label>
       <select id="period"></select></div>
     <div class="f"><label for="regShow">表示する地域</label>
@@ -351,6 +400,9 @@ function render(){
   if (tierJa) notes.push(`<span>${tierJa}</span>`);
   if ($("#input").value === "Console") notes.push(`<span>韓国（ネクソン）はPCのみ公開のため、コンソール選択時は韓国が「—」になります</span>`);
   $("#note").innerHTML = notes.join("");
+  { const t = o => o.options[o.selectedIndex]?.text.replace(/（.*?）/g,"") || "";
+    const parts = [st.view==="tiers"?"ランク帯比較":"ランキング", t($("#period")), t($("#mode")), st.view==="tiers"||$("#mode").value==="0"?"":t($("#tier")), t($("#input")), pid?"":t($("#map"))].filter(Boolean);
+    $("#fSum").textContent = parts.join("・"); }
   st.view === "tiers" ? renderTiers() : renderRank();
 }
 
@@ -400,7 +452,7 @@ function renderTiers(){
     if (!rows.length) h += `<tr><td colspan="${ranks.length*3+2}" class="empty">${only?"両方の地域で安定のヒーローはいません（ランク帯やロールを変えてみてください）": period() && !(pinfo().regions||[]).includes(reg) ? `この期間は${REG[reg].ja}のデータがありません` : "この条件のデータはありません"}</td></tr>`;
     return h + `</tbody></table></div>`;
   };
-  let html = `<div class="legend"><b>${mapJa}・${ranks.map(rj).join(" / ")}</b><span><span class="badge">安定</span>＝選んだ帯すべてで勝率50%以上　<span class="badge n">苦戦</span>＝すべてで50%未満</span><span class="ramp">${[42,45,48,50,52,55,58].map(v=>`<span style="background:${divColor(v,50,8)}"></span>`).join("")}</span><span>勝率 42% → 58%</span><span>各表はその地域の数字で並べ替えています</span>${only?`<span><b>両方で安定：${bothSet.size}人</b></span>`:""}</div>`;
+  let html = `<div class="legend"><b>${mapJa}・${ranks.map(rj).join(" / ")}</b><span><span class="badge">安定</span>＝選んだ帯すべてで勝率50%以上　<span class="badge n">苦戦</span>＝すべてで50%未満</span><span class="ramp">${[42,45,48,50,52,55,58].map(v=>`<span style="background:${divColor(v,50,8)}"></span>`).join("")}</span><span>勝率 42% → 58%</span><span>各表はその地域の数字で並べ替えています</span><span class="swipe">← 表は横にスクロールできます →</span>${only?`<span><b>両方で安定：${bothSet.size}人</b></span>`:""}</div>`;
   const rs = shownRegs();
   html += `<div class="tgrid tgrid2 ${rs.length===1?"one":""}">${rs.map(oneTable).join("")}</div>`;
   $("#out").innerHTML = html;
@@ -424,7 +476,7 @@ function renderRank(){
     if (!top.length) h += `<tr><td colspan="4" class="empty">${period() && !(pinfo().regions||[]).includes(reg) ? `この期間は${REG[reg].ja}のデータがありません` : "この条件のデータはありません"}</td></tr>`;
     return h + `</tbody></table></div>`;
   };
-  let html = `<div class="mapnav"><button id="mPrev" aria-label="前のマップ">◀ 前のマップ</button><b>${m.ja}</b><small>${m.type?D.mapTypes[m.type]:"全マップ合計"}・${idx+1}/${D.maps.length}</small><button id="mNext" aria-label="次のマップ">次のマップ ▶</button></div>`;
+  let html = `<div class="mapnav"><button id="mPrev" aria-label="前のマップ">◀<span class="lbl"> 前のマップ</span></button><b>${m.ja}</b><small>${m.type?D.mapTypes[m.type]:"全マップ合計"}・${idx+1}/${D.maps.length}</small><button id="mNext" aria-label="次のマップ"><span class="lbl">次のマップ </span>▶</button></div>`;
   if (period()) html = html.replace(/<button id="m(Prev|Next)"/g, '<button disabled id="m$1"').replace(/・\d+\/\d+<\/small>/, "（過去シーズンはマップ別なし）</small>");
   html += `<div class="legend"><span>それぞれの地域で勝率の高い順に並べています。</span><span class="ramp">${[42,45,48,50,52,55,58].map(v=>`<span style="background:${divColor(v,50,8)}"></span>`).join("")}</span><span>勝率 42% → 58%</span></div>`;
   const rs = shownRegs();
@@ -450,6 +502,11 @@ function showTip(e, title, rows){
   tip.style.left = x+"px"; tip.style.top = y+"px";
 }
 
+{ const mq = matchMedia("(max-width:700px)");
+  const setOpen = o => { $("#filters").classList.toggle("closed", !o); $("#fToggle").setAttribute("aria-expanded", o); };
+  setOpen(!mq.matches);
+  $("#fToggle").addEventListener("click", ()=>setOpen($("#filters").classList.contains("closed")));
+  mq.addEventListener("change", e=>setOpen(!e.matches)); }
 $("#onlyStable").checked = !!st.onlyStable;
 $("#onlyStable").addEventListener("change", render);
 $("#theme").value = document.documentElement.dataset.theme;
