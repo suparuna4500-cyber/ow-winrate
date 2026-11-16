@@ -88,6 +88,18 @@ tbody tr:hover td{background:var(--surface-2)}
 .legend{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text-2);margin:10px 0 8px;flex-wrap:wrap}
 .ramp{display:flex;height:10px;border-radius:5px;overflow:hidden;width:180px}
 .ramp span{flex:1}
+.rk{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px}
+.rk .card{max-height:none;overflow:visible}
+.rk h3{margin:0;padding:10px 12px 6px;font-size:14px;display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.rk h3 small{font-size:11px;font-weight:400;color:var(--muted)}
+.rk table td,.rk table th{padding:4px 8px}
+.rk thead th{position:static;cursor:default;font-size:11px}
+.rk td.v{width:58px;text-align:center;font-size:12.5px;border-radius:4px;border-bottom:2px solid var(--surface)}
+.rk td.hero{position:static;font-weight:600;font-size:13px}
+.rk .av{width:24px;height:24px;margin-right:7px}
+.rk .rank{width:16px}
+.rk .card.all{grid-column:1/-1}
+.rk .card.all table{columns:auto}
 #tip{position:fixed;pointer-events:none;z-index:20;background:var(--surface);color:var(--text);border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:12px;box-shadow:0 4px 16px rgba(0,0,0,.15);display:none;min-width:170px}
 #tip .t{font-weight:600;margin-bottom:4px}
 #tip .r{display:flex;justify-content:space-between;gap:14px}
@@ -105,7 +117,7 @@ footer{max-width:1280px;margin:0 auto;padding:0 20px 30px;color:var(--muted);fon
 <main>
   <div class="filters" role="group" aria-label="絞り込み">
     <div class="f"><label>表示</label>
-      <div class="seg" id="view"><button data-v="list" aria-pressed="true">一覧</button><button data-v="maps" aria-pressed="false">マップ別</button></div></div>
+      <div class="seg" id="view"><button data-v="list" aria-pressed="true">一覧</button><button data-v="rank" aria-pressed="false">マップ別ランキング</button><button data-v="maps" aria-pressed="false">マップ×ヒーロー表</button></div></div>
     <div class="f"><label for="mode">モード</label>
       <select id="mode"><option value="2">ライバル・プレイ（競技）</option><option value="0">クイック・プレイ</option></select></div>
     <div class="f"><label for="tier">ランク</label>
@@ -113,7 +125,9 @@ footer{max-width:1280px;margin:0 auto;padding:0 20px 30px;color:var(--muted);fon
     <div class="f"><label for="input">入力</label>
       <select id="input"><option value="PC">PC（マウス＆キーボード）</option><option value="Console">コンソール（コントローラー）</option></select></div>
     <div class="f" id="mapWrap"><label for="map">マップ</label><select id="map"></select></div>
-    <div class="f"><label for="metric">指標</label>
+    <div class="f" id="topWrap" hidden><label for="topN">表示人数</label>
+      <select id="topN"><option value="10">上位10人</option><option value="20">上位20人</option><option value="999">全員</option></select></div>
+    <div class="f" id="metricWrap"><label for="metric">指標</label>
       <select id="metric"><option value="0">勝率</option><option value="1">ピック率</option><option value="2">BAN率</option></select></div>
     <div class="f" id="mxWrap" hidden><label for="mxShow">表示する地域</label>
       <select id="mxShow"><option value="both">韓国＋アジア（2段で並べる）</option><option value="Korea">韓国のみ</option><option value="Asia">アジアのみ</option><option value="diff">差（韓国−アジア）</option><option value="Americas">米州</option><option value="Europe">欧州</option></select></div>
@@ -153,7 +167,7 @@ $("#tier").innerHTML = TIERS.map(([v,j])=>`<option value="${v}">${j}</option>`).
   }
   $("#map").innerHTML = html + "</optgroup>";
 }
-const ctl = ["mode","tier","input","map","metric","role","mxShow","order"];
+const ctl = ["mode","tier","input","map","metric","role","mxShow","order","topN"];
 for (const k of ctl){ if (st[k] != null && [...$("#"+k).options].some(o=>o.value===st[k])) $("#"+k).value = st[k]; }
 $("#xAm").checked = !!st.xAm; $("#xEu").checked = !!st.xEu;
 for (const k of ctl) $("#"+k).addEventListener("change", render);
@@ -230,6 +244,9 @@ function render(){
   $("#tier").disabled = $("#mode").value === "0";
   $("#mapWrap").hidden = st.view !== "list";
   $("#mxWrap").hidden = st.view !== "maps";
+  $("#topWrap").hidden = st.view !== "rank";
+  $("#metricWrap").hidden = st.view === "rank";
+  $("#extraWrap").hidden = st.view !== "list";
   save();
   const notes = [];
   const tierJa = $("#mode").value === "0" ? "（クイックはランク区分なし）" : "";
@@ -237,7 +254,7 @@ function render(){
   if (tierJa) notes.push(`<span>${tierJa}</span>`);
   if ($("#input").value === "Console") notes.push(`<span>韓国（ネクソン）はPCのみ公開のため、コンソール選択時は韓国が「—」になります</span>`);
   $("#note").innerHTML = notes.join("");
-  st.view === "list" ? renderList() : renderMatrix();
+  st.view === "list" ? renderList() : st.view === "rank" ? renderRank() : renderMatrix();
 }
 
 function renderList(){
@@ -350,6 +367,35 @@ function renderMatrix(){
     const td = e.target.closest("td.c"); if (!td){ tip.style.display="none"; return; }
     const h = D.heroes[td.dataset.h], m = maps.find(x=>x.id===td.dataset.m);
     showTip(e, `${av({...h,id:td.dataset.h})}${h.ja} ・ ${m.ja}`, regs.map(r=>[r, T[m.id][r]?.[td.dataset.h]]));
+  };
+  out.onmouseleave = ()=> tip.style.display="none";
+}
+
+function renderRank(){
+  const n = +$("#topN").value, ord = $("#order").value;
+  const ordLabel = $("#order").selectedOptions[0].textContent;
+  let html = `<div class="legend"><b>${ordLabel}</b><span>各マップで勝率の高いヒーローから並べています（韓国・アジアを並べて表示）。</span><span class="ramp">${[42,45,48,50,52,55,58].map(v=>`<span style="background:${divColor(v,50,8)}"></span>`).join("")}</span><span>42% → 58%</span></div><div class="rk">`;
+  let prevType = null;
+  for (const m of D.maps){
+    let list = heroes().filter(h=>winOf("Korea",m.id,h.id)!=null || winOf("Asia",m.id,h.id)!=null);
+    sortHeroes(list, m.id);
+    const top = list.slice(0, n);
+    const cell = v => { const bg = divColor(v,50,8); return `<td class="v" style="background:${bg};color:${v==null?"var(--muted)":inkFor(bg)}">${v==null?"—":v.toFixed(1)}</td>`; };
+    const typeJa = m.type ? D.mapTypes[m.type] : "全マップ合計";
+    html += `<div class="card"><h3>${m.ja}<small>${typeJa}</small></h3><table><thead><tr><th class="hero">ヒーロー</th><th><span class="sw" style="background:var(--kr)"></span> 韓国</th><th><span class="sw" style="background:var(--as)"></span> アジア</th></tr></thead><tbody>`;
+    top.forEach((h,i)=>{
+      html += `<tr data-h="${h.id}" data-m="${m.id}"><td class="hero"><span class="hn"><span class="rank">${i+1}</span>${av(h)}${h.ja||h.en}</span></td>${cell(winOf("Korea",m.id,h.id))}${cell(winOf("Asia",m.id,h.id))}</tr>`;
+    });
+    if (!top.length) html += `<tr><td colspan="3" class="empty">データなし</td></tr>`;
+    html += `</tbody></table></div>`;
+  }
+  html += `</div>`;
+  $("#out").innerHTML = html;
+  const out = $("#out"), tip = $("#tip"), all = ["Korea","Asia","Americas","Europe"];
+  out.onmousemove = e=>{
+    const tr = e.target.closest("tr[data-h]"); if (!tr){ tip.style.display="none"; return; }
+    const h = D.heroes[tr.dataset.h], m = D.maps.find(x=>x.id===tr.dataset.m);
+    showTip(e, `${av({...h,id:tr.dataset.h})}${h.ja} ・ ${m.ja}`, all.map(r=>[r, table(r,m.id)?.[tr.dataset.h]]));
   };
   out.onmouseleave = ()=> tip.style.display="none";
 }
