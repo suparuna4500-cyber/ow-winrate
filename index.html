@@ -193,6 +193,7 @@ tbody tr:hover td{background:var(--surface-2)}
 #tip .r{display:flex;justify-content:space-between;gap:14px}
 #tip .r span:first-child{display:flex;align-items:center;gap:5px;color:var(--text-2)}
 .ftoggle{display:none}
+.chk label:has(input:disabled){opacity:.4;cursor:not-allowed}
 .swipe{display:none}
 @media (max-width:700px){
   body{font-size:13px}
@@ -371,6 +372,8 @@ function inkFor(bg){ const m = bg.match(/\d+/g); if(!m) return ""; const [r,g,b]
 function shownRegs(){ const v = $("#regShow").value; return v === "both" ? ["Asia","Korea"] : [v]; }
 function render(){
   $("#tRankWrap").hidden = $("#mode").value === "0";
+  { const b = $("#bothStable").checked;   // 「両方で安定」中は、ほかの2つは選んでも結果が変わらないのでグレーアウト
+    for (const id of ["onlyStable","stableOnly"]){ const c = $("#"+id); c.disabled = b; c.closest("label").title = b ? "「アジアと韓国の両方で安定」を選んでいる間は使えません（自動で含まれます）" : ""; } }
   $("#colsWrap").hidden = $("#mode").value === "0" || (st.tRanks || ["Gold","Platinum","Emerald"]).length < 2;
   const pid = period();
   $("#map").disabled = !!pid;
