@@ -6,22 +6,12 @@
 <title>OW 勝率 韓国×アジア</title>
 <style>
 :root{
-  color-scheme: light;
-  --bg:#f6f6f4; --surface:#fcfcfb; --surface-2:#f0efec; --line:#e2e1dc;
-  --text:#0b0b0b; --text-2:#52514e; --muted:#8a8984;
-  --kr:#2a78d6; --as:#eb6834; --am:#1baf7a; --eu:#eda100;
-  --pos:#2a78d6; --neg:#e34948; --mid:#f0efec;
-  --accent:#2a78d6;
-}
-@media (prefers-color-scheme: dark){
-  :root{
-    color-scheme: dark;
-    --bg:#121211; --surface:#1a1a19; --surface-2:#242422; --line:#33332f;
-    --text:#f0efec; --text-2:#c3c2b7; --muted:#8f8e86;
-    --kr:#3987e5; --as:#d95926; --am:#199e70; --eu:#c98500;
-    --pos:#3987e5; --neg:#e66767; --mid:#383835;
-    --accent:#3987e5;
-  }
+  color-scheme: dark;
+  --bg:#000000; --surface:#121211; --surface-2:#1e1e1c; --line:#2c2c29;
+  --text:#f0efec; --text-2:#c3c2b7; --muted:#8f8e86;
+  --kr:#3987e5; --as:#d95926; --am:#199e70; --eu:#c98500;
+  --pos:#3987e5; --neg:#e66767; --mid:#383835;
+  --accent:#3987e5;
 }
 *{box-sizing:border-box}
 [hidden]{display:none!important}
@@ -114,8 +104,8 @@ tbody tr:hover td{background:var(--surface-2)}
 .tgrid2 .badge{font-size:9px;padding:0 4px;margin:1px 0 0}
 .tgrid2 .nm{line-height:1.25}
 .tgrid2 .rank{width:14px;margin-right:3px}
-.tc-Asia{--cardbg:color-mix(in srgb, var(--as) 9%, var(--surface))}
-.tc-Korea{--cardbg:color-mix(in srgb, var(--kr) 9%, var(--surface))}
+.tc-Asia{--cardbg:color-mix(in srgb, var(--as) 13%, var(--surface))}
+.tc-Korea{--cardbg:color-mix(in srgb, var(--kr) 13%, var(--surface))}
 .tcard{background:var(--cardbg);border-color:color-mix(in srgb, var(--cardbg) 70%, var(--line))}
 .tcard thead th,.tcard td.hero{background:var(--cardbg)}
 .tcard .tth{background:var(--cardbg)}
@@ -141,7 +131,7 @@ tbody tr:hover td{background:var(--surface-2)}
 .tv th.gs,.tv td.gs{border-left:3px solid var(--surface-2)}
 .badge{display:inline-block;font-size:10.5px;font-weight:600;border-radius:4px;padding:1px 6px;margin-left:6px;vertical-align:1px;background:var(--pos);color:#fff}
 .badge.n{background:transparent;color:var(--neg);border:1px solid var(--neg)}
-#tip{position:fixed;pointer-events:none;z-index:20;background:var(--surface);color:var(--text);border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:12px;box-shadow:0 4px 16px rgba(0,0,0,.15);display:none;min-width:170px}
+#tip{position:fixed;pointer-events:none;z-index:20;background:var(--surface);color:var(--text);border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:12px;box-shadow:0 4px 16px rgba(0,0,0,.6);display:none;min-width:170px}
 #tip .t{font-weight:600;margin-bottom:4px}
 #tip .r{display:flex;justify-content:space-between;gap:14px}
 #tip .r span:first-child{display:flex;align-items:center;gap:5px;color:var(--text-2)}
