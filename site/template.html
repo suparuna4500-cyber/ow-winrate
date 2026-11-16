@@ -260,14 +260,14 @@ footer{max-width:1440px;margin:0 auto;padding:0 20px 30px;color:var(--muted);fon
       <select id="input"><option value="PC">PC（マウス＆キーボード）</option><option value="Console">コンソール（コントローラー）</option></select></div>
     <div class="f" id="mapWrap"><label for="map">マップ</label><select id="map"></select></div>
     <div class="f" id="tSortWrap"><label for="tSort">並び順</label>
-      <select id="tSort"><option value="min">どの帯でも勝てる順（最低勝率が高い順）</option><option value="avg">平均勝率が高い順</option><option value="pick">ピック率が高い順（真ん中の帯）</option><option value="ban">BAN率が高い順（真ん中の帯）</option><option value="name">名前順</option></select></div>
+      <select id="tSort"><option value="min">どの帯でも勝てる順（最低勝率が高い順）</option><option value="avg">平均勝率が高い順</option><option value="pick">ピック率が高い順（真ん中の帯）</option><option value="name">名前順</option></select></div>
     <div class="f" id="tStableWrap"><label>絞り込み</label>
       <div class="chk"><label><input type="checkbox" id="onlyStable">アジアと韓国の平均で1つの表にする（全ヒーロー表示）</label></div></div>
     <div class="f" id="tRankWrap" style="flex-basis:100%"><label>比べるランク帯（2〜4個がおすすめ）</label>
       <div class="chk" id="tRanks"></div>
       </div>
     <div class="f" id="colsWrap"><label for="cols">表示する列</label>
-      <select id="cols"><option value="each">ランク帯ごと（勝率・ピック・BAN）</option><option value="avg">選んだ帯の平均だけ</option><option value="min">最低勝率だけ</option></select></div>
+      <select id="cols"><option value="each">ランク帯ごと（勝率・ピック）</option><option value="avg">選んだ帯の平均だけ</option><option value="min">最低勝率だけ</option></select></div>
     <div class="f"><label for="role">ロール</label>
       <select id="role"><option value="">すべて</option><option value="tank">タンク</option><option value="damage">ダメージ</option><option value="support">サポート</option></select></div>
     <div class="f"><label for="q">ヒーロー検索</label><input id="q" type="search" placeholder="例: アナ" size="10"></div>
@@ -321,6 +321,7 @@ function loadPeriod(id){
     .then(j=>{ PER[id] = j; }).catch(()=>{ PER[id] = {}; }).finally(()=>{ loadPeriod.busy = null; render(); });
 }
 if (st.rankAvg && !st.cols) st.cols = "avg";
+if (st.tSort === "ban") st.tSort = "min";
 const ctl = ["period","regShow","mode","input","map","role","tSort","cols"];
 for (const k of ctl){ if (st[k] != null && [...$("#"+k).options].some(o=>o.value===st[k])) $("#"+k).value = st[k]; }
 for (const k of ctl) $("#"+k).addEventListener("change", render);
@@ -373,7 +374,6 @@ function render(){
     notes.push(`<span class="past">過去シーズン表示中: <b>${p.ja}</b>（${range(p)}）の最終的な数字</span>`);
     notes.push(`<span>過去シーズンは全マップ合計のみ。owherostats.com の集計を取り込んだもの</span>`);
     const anyC = Object.values(PER[pid]||{})[0], hasBan = anyC && anyC.m["all-maps"].some((x,i)=>i%3===2 && x!=null);
-    if (anyC && !hasBan) notes.push(`<span>この時期はBAN率が公開されていないため「—」になります</span>`);
     if (!(p.regions||[]).includes("Korea")) notes.push(`<span>この期間は韓国のデータがありません（韓国は2026年9月のシーズン4後半から）</span>`);
   } else notes.push(`<span>データ取得: <b>${D.asof}</b></span>`);
   if ($("#input").value === "Console") notes.push(`<span>韓国（ネクソン）はPCのみ公開のため、コンソール選択時は韓国が「—」になります</span>`);
@@ -425,19 +425,19 @@ function renderTiers(){
     const mean = xs => { xs = xs.filter(x=>x!=null); return xs.length ? xs.reduce((a,b)=>a+b,0)/xs.length : null; };
     if (ravg) rows.forEach(o=>{ o.v = [[0,1,2].map(i=>mean(o.v.map(x=>x[i])))]; });
     const mi = ravg ? 0 : mid;
-    const key = o => rmin && (sortBy==="min" || sortBy==="avg") ? o.min : sortBy==="min" ? o.min : sortBy==="avg" ? o.avg : sortBy==="pick" ? o.v[mi][1] : sortBy==="ban" ? o.v[mi][2] : null;
+    const key = o => rmin && (sortBy==="min" || sortBy==="avg") ? o.min : sortBy==="min" ? o.min : sortBy==="avg" ? o.avg : sortBy==="pick" ? o.v[mi][1] : null;
     if (sortBy === "name") rows.sort((a,b)=>(a.h.ja||a.h.id).localeCompare(b.h.ja||b.h.id,"ja"));
     else rows.sort((a,b)=>{ const x=key(a), y=key(b); if (x==null&&y==null) return 0; if (x==null) return 1; if (y==null) return -1; return y-x; });
     let h = `<div class="card tcard tc-${reg}${rmin?" minonly":""}"><h3 class="tth"><span class="sw" style="background:var(${REG[reg].c})"></span> ${REG[reg].ja}${reg==="Korea"&&$("#input").value==="Console"?" <small>（韓国はPCのみ公開のためデータなし）</small>":""}</h3><table class="tv"><thead>`;
-    h += `<tr class="g"><th class="hero"></th>${(rmin ? [] : ravg ? [[null,"平均（"+ranks.map(rj).join("・")+"）"]] : ranks).map(r=>`<th colspan="3" class="gs">${rj(r)}</th>`).join("")}<th class="gs">まとめ</th></tr>`;
-    h += `<tr class="c"><th class="hero">ヒーロー</th>${(rmin ? [] : ravg ? [0] : ranks).map(()=>`<th class="gs">勝率</th><th>ピック</th><th>BAN</th>`).join("")}<th class="gs">最低勝率</th></tr></thead><tbody>`;
+    h += `<tr class="g"><th class="hero"></th>${(rmin ? [] : ravg ? [[null,"平均（"+ranks.map(rj).join("・")+"）"]] : ranks).map(r=>`<th colspan="2" class="gs">${rj(r)}</th>`).join("")}<th class="gs">まとめ</th></tr>`;
+    h += `<tr class="c"><th class="hero">ヒーロー</th>${(rmin ? [] : ravg ? [0] : ranks).map(()=>`<th class="gs">勝率</th><th>ピック</th>`).join("")}<th class="gs">最低勝率</th></tr></thead><tbody>`;
     rows.forEach((o,i)=>{
       const badge = o.up ? `<span class="badge">安定</span>` : o.down ? `<span class="badge n">苦戦</span>` : "";
       h += `<tr><td class="hero"><span class="hn"><span class="rank">${i+1}</span>${av(o.h)}<span class="nm">${o.h.ja||o.h.en}${badge?`<br>${badge}`:""}</span></span></td>`;
-      if (!rmin) o.v.forEach(x=>{ h += cell(x[0],"gs") + sm(x[1]) + sm(x[2]); });
+      if (!rmin) o.v.forEach(x=>{ h += cell(x[0],"gs") + sm(x[1]); });
       h += cell(o.min,"gs") + `</tr>`;
     });
-    if (!rows.length) h += `<tr><td colspan="${(rmin?0:ravg?1:ranks.length)*3+2}" class="empty">${period() && !(pinfo().regions||[]).includes(reg) ? `この期間は${REG[reg].ja}のデータがありません` : "この条件のデータはありません"}</td></tr>`;
+    if (!rows.length) h += `<tr><td colspan="${(rmin?0:ravg?1:ranks.length)*2+2}" class="empty">${period() && !(pinfo().regions||[]).includes(reg) ? `この期間は${REG[reg].ja}のデータがありません` : "この条件のデータはありません"}</td></tr>`;
     return h + `</tbody></table></div>`;
   };
   let html = `<div class="legend"><b>${mapJa}・${ranks.map(rj).join(" / ")}</b><span><span class="badge">安定</span>＝選んだ帯すべてで勝率50%以上　<span class="badge n">苦戦</span>＝すべてで50%未満</span><span class="ramp">${[42,45,48,50,52,55,58].map(v=>`<span style="background:${divColor(v,50,8)}"></span>`).join("")}</span><span>勝率 42% → 58%</span>${only?"":"<span>各表はその地域の数字で並べ替えています</span>"}${qp?"<span>クイック・プレイはランク区分がないため全ランクのみ</span>":""}${ravg?`<span><b>選んだ帯の平均を表示中</b>（${sortBy==="min"?"最低勝率":sortBy==="avg"?"平均勝率":"選んだ並び順"}が高い順。「並び順」で切り替え）</span>`:""}${rmin?"<span><b>最低勝率だけを表示中</b>（選んだ帯の中で一番低い勝率。高い順）</span>":""}<span class="swipe">← 表は横にスクロールできます →</span>${only?`<span><b>数字はアジアと韓国の平均</b>（「安定」「苦戦」も平均の勝率で判定）</span>`:""}</div>`;
@@ -450,7 +450,7 @@ function renderTiers(){
 function showTip(e, title, rows){
   const tip = $("#tip");
   let s = `<div class="t">${title}</div>`;
-  s += `<div class="r" style="color:var(--muted);font-size:11px"><span></span><span>勝率 / ピック / BAN</span></div>`;
+  s += `<div class="r" style="color:var(--muted);font-size:11px"><span></span><span>勝率 / ピック</span></div>`;
   for (const [r,v] of rows){
     s += `<div class="r"><span><span class="sw" style="background:var(${REG[r].c})"></span>${REG[r].ja}</span><span>${v? v.map(x=>x==null?"—":x.toFixed(1)).join(" / ") : "—"}</span></div>`;
   }
@@ -471,7 +471,7 @@ $("#onlyStable").checked = !!st.onlyStable;
 $("#onlyStable").addEventListener("change", render);
 $("#theme").value = document.documentElement.dataset.theme;
 $("#theme").addEventListener("change", e=>{ document.documentElement.dataset.theme = e.target.value; try{ localStorage.setItem("owwr-theme", e.target.value); }catch(_){} render(); });
-$("#asof").innerHTML = `韓国（ネクソン公式）とアジア（Blizzard公式）の全ヒーローの勝率・ピック率・BAN率を並べて表示。マップ・ランク・モード別。`;
+$("#asof").innerHTML = `韓国（ネクソン公式）とアジア（Blizzard公式）の全ヒーローの勝率・ピック率を並べて表示。マップ・ランク・モード別。`;
 render();
 </script>
 </body>
