@@ -88,9 +88,13 @@ tbody tr:hover td{background:var(--surface-2)}
 .legend{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text-2);margin:10px 0 8px;flex-wrap:wrap}
 .ramp{display:flex;height:10px;border-radius:5px;overflow:hidden;width:180px}
 .ramp span{flex:1}
-.rk{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px}
+.rk{max-width:640px}
+.mapnav{display:flex;align-items:center;gap:8px;margin:0 0 10px}
+.mapnav button{font:inherit;font-size:13px;border:1px solid var(--line);background:var(--surface);color:var(--text);border-radius:8px;padding:6px 12px;cursor:pointer;min-height:34px}
+.mapnav b{font-size:17px;margin:0 6px}
+.mapnav small{color:var(--muted)}
 .rk .card{max-height:none;overflow:visible}
-.rk h3{margin:0;padding:10px 12px 6px;font-size:14px;display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.rk h3{margin:0;padding:10px 12px 6px;font-size:15px;display:flex;justify-content:space-between;align-items:baseline;gap:8px}
 .rk h3 small{font-size:11px;font-weight:400;color:var(--muted)}
 .rk table td,.rk table th{padding:4px 8px}
 .rk thead th{position:static;cursor:default;font-size:11px}
@@ -126,7 +130,7 @@ footer{max-width:1280px;margin:0 auto;padding:0 20px 30px;color:var(--muted);fon
       <select id="input"><option value="PC">PC（マウス＆キーボード）</option><option value="Console">コンソール（コントローラー）</option></select></div>
     <div class="f" id="mapWrap"><label for="map">マップ</label><select id="map"></select></div>
     <div class="f" id="topWrap" hidden><label for="topN">表示人数</label>
-      <select id="topN"><option value="10">上位10人</option><option value="20">上位20人</option><option value="999">全員</option></select></div>
+      <select id="topN"><option value="999">全員</option><option value="10">上位10人</option><option value="20">上位20人</option></select></div>
     <div class="f" id="metricWrap"><label for="metric">指標</label>
       <select id="metric"><option value="0">勝率</option><option value="1">ピック率</option><option value="2">BAN率</option></select></div>
     <div class="f" id="mxWrap" hidden><label for="mxShow">表示する地域</label>
@@ -155,7 +159,7 @@ const ROLE_JA = {tank:"タンク",damage:"ダメージ",support:"サポート"};
 const MET = ["勝率","ピック率","BAN率"];
 const $ = s => document.querySelector(s);
 const st = {view:"list", mxCol:"all-maps"};
-try{ Object.assign(st, JSON.parse(localStorage.getItem("owwr-v2")||"{}")); }catch(e){}
+try{ Object.assign(st, JSON.parse(localStorage.getItem("owwr-v3")||"{}")); }catch(e){}
 
 // ---- controls
 $("#tier").innerHTML = TIERS.map(([v,j])=>`<option value="${v}">${j}</option>`).join("");
@@ -178,7 +182,7 @@ for (const b of document.querySelectorAll("#view button")) b.addEventListener("c
 function save(){
   const o = {view:st.view, mxCol:st.mxCol, xAm:$("#xAm").checked, xEu:$("#xEu").checked};
   for (const k of ctl) o[k] = $("#"+k).value;
-  try{ localStorage.setItem("owwr-v2", JSON.stringify(o)); }catch(e){}
+  try{ localStorage.setItem("owwr-v3", JSON.stringify(o)); }catch(e){}
 }
 
 // ---- data access
@@ -242,7 +246,7 @@ function regionsShown(){
 function render(){
   for (const b of document.querySelectorAll("#view button")) b.setAttribute("aria-pressed", b.dataset.v===st.view);
   $("#tier").disabled = $("#mode").value === "0";
-  $("#mapWrap").hidden = st.view !== "list";
+  $("#mapWrap").hidden = st.view === "maps";
   $("#mxWrap").hidden = st.view !== "maps";
   $("#topWrap").hidden = st.view !== "rank";
   $("#metricWrap").hidden = st.view === "rank";
@@ -374,15 +378,17 @@ function renderMatrix(){
 function renderRank(){
   const n = +$("#topN").value, ord = $("#order").value;
   const ordLabel = $("#order").selectedOptions[0].textContent;
-  let html = `<div class="legend"><b>${ordLabel}</b><span>各マップで勝率の高いヒーローから並べています（韓国・アジアを並べて表示）。</span><span class="ramp">${[42,45,48,50,52,55,58].map(v=>`<span style="background:${divColor(v,50,8)}"></span>`).join("")}</span><span>42% → 58%</span></div><div class="rk">`;
-  let prevType = null;
-  for (const m of D.maps){
+  let html = `<div class="legend"><b>${ordLabel}</b><span>選んだマップで勝率の高いヒーローから並べています（韓国・アジアを並べて表示）。</span><span class="ramp">${[42,45,48,50,52,55,58].map(v=>`<span style="background:${divColor(v,50,8)}"></span>`).join("")}</span><span>42% → 58%</span></div><div class="rk">`;
+  const m = D.maps.find(x=>x.id===$("#map").value) || D.maps[0];
+  const idx = D.maps.indexOf(m);
+  html = html.replace('<div class="rk">', `<div class="mapnav"><button id="mPrev" aria-label="前のマップ">◀ 前のマップ</button><b>${m.ja}</b><small>${m.type?D.mapTypes[m.type]:"全マップ合計"}・${idx+1}/${D.maps.length}</small><button id="mNext" aria-label="次のマップ">次のマップ ▶</button></div><div class="rk">`);
+  {
     let list = heroes().filter(h=>winOf("Korea",m.id,h.id)!=null || winOf("Asia",m.id,h.id)!=null);
     sortHeroes(list, m.id);
     const top = list.slice(0, n);
     const cell = v => { const bg = divColor(v,50,8); return `<td class="v" style="background:${bg};color:${v==null?"var(--muted)":inkFor(bg)}">${v==null?"—":v.toFixed(1)}</td>`; };
     const typeJa = m.type ? D.mapTypes[m.type] : "全マップ合計";
-    html += `<div class="card"><h3>${m.ja}<small>${typeJa}</small></h3><table><thead><tr><th class="hero">ヒーロー</th><th><span class="sw" style="background:var(--kr)"></span> 韓国</th><th><span class="sw" style="background:var(--as)"></span> アジア</th></tr></thead><tbody>`;
+    html += `<div class="card"><table><thead><tr><th class="hero">ヒーロー</th><th><span class="sw" style="background:var(--kr)"></span> 韓国</th><th><span class="sw" style="background:var(--as)"></span> アジア</th></tr></thead><tbody>`;
     top.forEach((h,i)=>{
       html += `<tr data-h="${h.id}" data-m="${m.id}"><td class="hero"><span class="hn"><span class="rank">${i+1}</span>${av(h)}${h.ja||h.en}</span></td>${cell(winOf("Korea",m.id,h.id))}${cell(winOf("Asia",m.id,h.id))}</tr>`;
     });
@@ -391,6 +397,8 @@ function renderRank(){
   }
   html += `</div>`;
   $("#out").innerHTML = html;
+  const step = d => { $("#map").value = D.maps[(idx + d + D.maps.length) % D.maps.length].id; render(); };
+  $("#mPrev").onclick = () => step(-1); $("#mNext").onclick = () => step(1);
   const out = $("#out"), tip = $("#tip"), all = ["Korea","Asia","Americas","Europe"];
   out.onmousemove = e=>{
     const tr = e.target.closest("tr[data-h]"); if (!tr){ tip.style.display="none"; return; }
