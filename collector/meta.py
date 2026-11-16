@@ -25,7 +25,7 @@ MAPS = [
     ("circuit-royal", "サーキット・ロイヤル", "escort"), ("dorado", "ドラド", "escort"),
     ("grimsvotn", "ウォッチポイント：グリムスヴォトン", "escort"), ("havana", "ハバナ", "escort"), ("junkertown", "ジャンカータウン", "escort"),
     ("rialto", "リアルト", "escort"), ("route-66", "ルート66", "escort"),
-    ("shambali-monastery", "シャンバリ寺院", "escort"), ("watchpoint-gibraltar", "監視棟:ジブラルタル", "escort"),
+    ("shambali-monastery", "シャンバリ寺院", "escort"), ("watchpoint-gibraltar", "ウォッチポイント：ジブラルタル", "escort"),
     ("aatlis", "アートリス", "flashpoint"), ("new-junk-city", "ニュー・ジャンク・シティ", "flashpoint"),
     ("suravasa", "スラヴァーサ", "flashpoint"),
     ("blizzard-world", "ブリザードワールド", "hybrid"), ("eichenwalde", "アイヒェンヴァルデ", "hybrid"),
