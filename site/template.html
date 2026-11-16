@@ -26,11 +26,11 @@
 *{box-sizing:border-box}
 [hidden]{display:none!important}
 body{margin:0;background:var(--bg);color:var(--text);font:14px/1.5 system-ui,-apple-system,"Hiragino Sans","Yu Gothic UI","Meiryo",sans-serif}
-header{padding:18px 20px 6px;max-width:1280px;margin:0 auto}
+header{padding:18px 20px 6px;max-width:1440px;margin:0 auto}
 h1{font-size:20px;margin:0 0 2px;letter-spacing:.02em}
 .sub{color:var(--text-2);font-size:12.5px}
 .sub a{color:var(--text-2)}
-main{max-width:1280px;margin:0 auto;padding:0 20px 40px}
+main{max-width:1440px;margin:0 auto;padding:0 20px 40px}
 .filters{position:sticky;top:0;z-index:5;background:var(--bg);padding:10px 0;display:flex;flex-wrap:wrap;gap:8px 14px;align-items:flex-end;border-bottom:1px solid var(--line)}
 .f{display:flex;flex-direction:column;gap:3px}
 .f label{font-size:11px;color:var(--muted)}
@@ -105,6 +105,22 @@ tbody tr:hover td{background:var(--surface-2)}
 .rk .card.all{grid-column:1/-1}
 .rk .card.all table{columns:auto}
 .tgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,640px),1fr));gap:14px}
+.tgrid2{grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px}
+.tgrid2 .tv td.w{width:auto;min-width:40px;padding:4px 3px;font-size:12px}
+.tgrid2 .tv td.sm{width:auto;padding:4px 3px;font-size:11px}
+.tgrid2 .tv th{padding:3px 3px;font-size:10.5px}
+.tgrid2 .tv td.hero{font-size:12px;padding:4px 3px;white-space:nowrap}
+.tgrid2 .av{width:22px;height:22px;margin-right:4px}
+.tgrid2 .badge{font-size:9px;padding:0 4px;margin:1px 0 0}
+.tgrid2 .nm{line-height:1.25}
+.tgrid2 .rank{width:14px;margin-right:3px}
+.tc-Asia{--cardbg:color-mix(in srgb, var(--as) 9%, var(--surface))}
+.tc-Korea{--cardbg:color-mix(in srgb, var(--kr) 9%, var(--surface))}
+.tcard{background:var(--cardbg);border-color:color-mix(in srgb, var(--cardbg) 70%, var(--line))}
+.tcard thead th,.tcard td.hero{background:var(--cardbg)}
+.tcard .tth{background:var(--cardbg)}
+.tcard tbody tr:hover td.hero,.tcard tbody tr:hover td.sm{background:color-mix(in srgb, var(--cardbg) 80%, var(--text) 6%)}
+.tcard td,.tcard th{border-bottom-color:color-mix(in srgb, var(--cardbg) 75%, var(--line))}
 .rgrid{grid-template-columns:repeat(auto-fit,minmax(min(100%,400px),1fr));max-width:1000px}
 .rgrid .tv thead tr.c th{top:0 !important}
 .tcard{max-height:calc(100vh - 120px)}
@@ -129,7 +145,7 @@ tbody tr:hover td{background:var(--surface-2)}
 #tip .t{font-weight:600;margin-bottom:4px}
 #tip .r{display:flex;justify-content:space-between;gap:14px}
 #tip .r span:first-child{display:flex;align-items:center;gap:5px;color:var(--text-2)}
-footer{max-width:1280px;margin:0 auto;padding:0 20px 30px;color:var(--muted);font-size:11.5px}
+footer{max-width:1440px;margin:0 auto;padding:0 20px 30px;color:var(--muted);font-size:11.5px}
 .empty{padding:30px;text-align:center;color:var(--text-2)}
 @media (max-width:700px){header,main,footer{padding-left:10px;padding-right:10px}.bar,.pb{width:40px}th,td{padding:5px 6px}}
 </style>
@@ -291,12 +307,12 @@ function renderTiers(){
     const key = o => sortBy==="min" ? o.min : sortBy==="avg" ? o.avg : sortBy==="pick" ? o.v[mid][1] : sortBy==="ban" ? o.v[mid][2] : null;
     if (sortBy === "name") rows.sort((a,b)=>(a.h.ja||a.h.id).localeCompare(b.h.ja||b.h.id,"ja"));
     else rows.sort((a,b)=>{ const x=key(a), y=key(b); if (x==null&&y==null) return 0; if (x==null) return 1; if (y==null) return -1; return y-x; });
-    let h = `<div class="card tcard"><h3 class="tth"><span class="sw" style="background:var(${REG[reg].c})"></span> ${REG[reg].ja}${reg==="Korea"&&$("#input").value==="Console"?" <small>（韓国はPCのみ公開のためデータなし）</small>":""}</h3><table class="tv"><thead>`;
+    let h = `<div class="card tcard tc-${reg}"><h3 class="tth"><span class="sw" style="background:var(${REG[reg].c})"></span> ${REG[reg].ja}${reg==="Korea"&&$("#input").value==="Console"?" <small>（韓国はPCのみ公開のためデータなし）</small>":""}</h3><table class="tv"><thead>`;
     h += `<tr class="g"><th class="hero"></th>${ranks.map(r=>`<th colspan="3" class="gs">${rj(r)}</th>`).join("")}<th class="gs">まとめ</th></tr>`;
     h += `<tr class="c"><th class="hero">ヒーロー</th>${ranks.map(()=>`<th class="gs">勝率</th><th>ピック</th><th>BAN</th>`).join("")}<th class="gs">最低勝率</th></tr></thead><tbody>`;
     rows.forEach((o,i)=>{
       const badge = o.up ? `<span class="badge">安定</span>` : o.down ? `<span class="badge n">苦戦</span>` : "";
-      h += `<tr><td class="hero"><span class="hn"><span class="rank">${i+1}</span>${av(o.h)}${o.h.ja||o.h.en}<span class="role">${ROLE_JA[o.h.role]||""}</span>${badge}</span></td>`;
+      h += `<tr><td class="hero"><span class="hn"><span class="rank">${i+1}</span>${av(o.h)}<span class="nm">${o.h.ja||o.h.en}${badge?`<br>${badge}`:""}</span></span></td>`;
       o.v.forEach(x=>{ h += cell(x[0],"gs") + sm(x[1]) + sm(x[2]); });
       h += cell(o.min,"gs") + `</tr>`;
     });
@@ -304,7 +320,7 @@ function renderTiers(){
     return h + `</tbody></table></div>`;
   };
   let html = `<div class="legend"><b>${mapJa}・${ranks.map(rj).join(" / ")}</b><span><span class="badge">安定</span>＝選んだ帯すべてで勝率50%以上　<span class="badge n">苦戦</span>＝すべてで50%未満</span><span class="ramp">${[42,45,48,50,52,55,58].map(v=>`<span style="background:${divColor(v,50,8)}"></span>`).join("")}</span><span>勝率 42% → 58%</span><span>各表はその地域の数字で並べ替えています</span></div>`;
-  html += `<div class="tgrid">${oneTable("Asia")}${oneTable("Korea")}</div>`;
+  html += `<div class="tgrid tgrid2">${oneTable("Asia")}${oneTable("Korea")}</div>`;
   $("#out").innerHTML = html;
   $("#out").onmousemove = null; $("#tip").style.display = "none";
 }
@@ -320,7 +336,7 @@ function renderRank(){
     let list = heroes().filter(h=>tb[h.id]?.[0]!=null);
     list.sort((a,b)=>tb[b.id][0]-tb[a.id][0]);
     const top = list.slice(0, n);
-    let h = `<div class="card tcard"><h3 class="tth"><span class="sw" style="background:var(${REG[reg].c})"></span> ${REG[reg].ja}${reg==="Korea"&&$("#input").value==="Console"?" <small>（韓国はPCのみ公開のためデータなし）</small>":""}</h3><table class="tv"><thead><tr class="c"><th class="hero">ヒーロー</th><th class="gs">勝率</th><th>ピック</th><th>BAN</th></tr></thead><tbody>`;
+    let h = `<div class="card tcard tc-${reg}"><h3 class="tth"><span class="sw" style="background:var(${REG[reg].c})"></span> ${REG[reg].ja}${reg==="Korea"&&$("#input").value==="Console"?" <small>（韓国はPCのみ公開のためデータなし）</small>":""}</h3><table class="tv"><thead><tr class="c"><th class="hero">ヒーロー</th><th class="gs">勝率</th><th>ピック</th><th>BAN</th></tr></thead><tbody>`;
     top.forEach((x,i)=>{ const v = tb[x.id];
       h += `<tr data-h="${x.id}"><td class="hero"><span class="hn"><span class="rank">${i+1}</span>${av(x)}${x.ja||x.en}<span class="role">${ROLE_JA[x.role]||""}</span></span></td>${cell(v[0])}${sm(v[1])}${sm(v[2])}</tr>`; });
     if (!top.length) h += `<tr><td colspan="4" class="empty">この条件のデータはありません</td></tr>`;
