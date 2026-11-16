@@ -30,7 +30,7 @@ MAPS = [
     ("suravasa", "スラヴァーサ", "flashpoint"),
     ("blizzard-world", "ブリザードワールド", "hybrid"), ("eichenwalde", "アイヒェンヴァルデ", "hybrid"),
     ("hollywood", "ハリウッド", "hybrid"), ("kings-row", "キングスロウ", "hybrid"), ("midtown", "ミッドタウン", "hybrid"),
-    ("neon-junction", "ネオン・ジャンクション", "hybrid"), ("numbani", "ナンバーニ", "hybrid"), ("paraiso", "パライーゾ", "hybrid"),
+    ("neon-junction", "ネオン・ジャンクション", "hybrid"), ("numbani", "ヌンバーニ", "hybrid"), ("paraiso", "パライソ", "hybrid"),
     ("colosseo", "コロッセオ", "push"), ("esperanca", "エスペランサ", "push"),
     ("new-queen-street", "ニュー・クイーン・ストリート", "push"), ("runasapi", "ルナサピ", "push"),
 ]
