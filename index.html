@@ -150,6 +150,9 @@ tbody tr:hover td{background:var(--surface-2)}
 .tcard{border:1px solid var(--grid-strong)}
 .tcard thead tr:last-child th{border-bottom:1px solid var(--grid-strong)}
 .tcard td.w{border-bottom:1px solid var(--grid)}
+.tcard .tv td,.tcard .tv th{border-left:1px solid var(--grid)}
+.tcard .tv td.hero,.tcard .tv th.hero{border-left:0}
+.tcard .tv thead tr.g th:not(.gs){border-left:0}
 .tcard .tv th.gs,.tcard .tv td.gs{border-left:2px solid var(--grid-strong)}
 .tgrid2.one{grid-template-columns:minmax(0,1fr);max-width:900px}
 .rgrid.one{grid-template-columns:minmax(0,1fr);max-width:520px}
