@@ -259,7 +259,7 @@ footer{max-width:1440px;margin:0 auto;padding:0 20px 30px;color:var(--muted);fon
     <div class="f" id="tSortWrap"><label for="tSort">並び順</label>
       <select id="tSort"><option value="min">どの帯でも勝てる順（最低勝率が高い順）</option><option value="avg">平均勝率が高い順</option><option value="pick">ピック率が高い順（真ん中の帯）</option><option value="ban">BAN率が高い順（真ん中の帯）</option><option value="name">名前順</option></select></div>
     <div class="f" id="tStableWrap"><label>絞り込み</label>
-      <div class="chk"><label><input type="checkbox" id="onlyStable">アジアと韓国の両方で「安定」のヒーローだけ表示</label></div></div>
+      <div class="chk"><label><input type="checkbox" id="onlyStable">アジアと韓国の平均で1つの表にする（全ヒーロー表示）</label></div></div>
     <div class="f" id="tRankWrap" style="flex-basis:100%"><label>比べるランク帯（2〜4個がおすすめ）</label>
       <div class="chk" id="tRanks"></div></div>
     <div class="f"><label for="role">ロール</label>
@@ -398,7 +398,7 @@ function renderTiers(){
     for (const h of heroes()){ const wr = T.map(tb=>tb?.[h.id]?.[0]).filter(x=>x!=null); if (wr.length===ranks.length && wr.every(x=>x>=50)) set.add(h.id); }
     return set; };
   const only = $("#onlyStable").checked;
-  const bothSet = only ? (()=>{ const a = stableIn("Asia"), k = stableIn("Korea"); return new Set([...a].filter(x=>k.has(x))); })() : null;
+  const bothSet = null;
   // 平均表：アジアと韓国の数字を帯ごとに平均（片方しかない値はそのまま）
   const avgTable = t => { const a = tierTable("Asia", t, map), k = tierTable("Korea", t, map); if (!a && !k) return null;
     const out = {}; for (const id of new Set([...Object.keys(a||{}), ...Object.keys(k||{})])){
@@ -424,10 +424,10 @@ function renderTiers(){
       o.v.forEach(x=>{ h += cell(x[0],"gs") + sm(x[1]) + sm(x[2]); });
       h += cell(o.min,"gs") + `</tr>`;
     });
-    if (!rows.length) h += `<tr><td colspan="${ranks.length*3+2}" class="empty">${only?"両方の地域で安定のヒーローはいません（ランク帯やロールを変えてみてください）": period() && !(pinfo().regions||[]).includes(reg) ? `この期間は${REG[reg].ja}のデータがありません` : "この条件のデータはありません"}</td></tr>`;
+    if (!rows.length) h += `<tr><td colspan="${ranks.length*3+2}" class="empty">${period() && !(pinfo().regions||[]).includes(reg) ? `この期間は${REG[reg].ja}のデータがありません` : "この条件のデータはありません"}</td></tr>`;
     return h + `</tbody></table></div>`;
   };
-  let html = `<div class="legend"><b>${mapJa}・${ranks.map(rj).join(" / ")}</b><span><span class="badge">安定</span>＝選んだ帯すべてで勝率50%以上　<span class="badge n">苦戦</span>＝すべてで50%未満</span><span class="ramp">${[42,45,48,50,52,55,58].map(v=>`<span style="background:${divColor(v,50,8)}"></span>`).join("")}</span><span>勝率 42% → 58%</span>${only?"":"<span>各表はその地域の数字で並べ替えています</span>"}${qp?"<span>クイック・プレイはランク区分がないため全ランクのみ</span>":""}<span class="swipe">← 表は横にスクロールできます →</span>${only?`<span><b>両方で安定：${bothSet.size}人</b>（数字はアジアと韓国の平均）</span>`:""}</div>`;
+  let html = `<div class="legend"><b>${mapJa}・${ranks.map(rj).join(" / ")}</b><span><span class="badge">安定</span>＝選んだ帯すべてで勝率50%以上　<span class="badge n">苦戦</span>＝すべてで50%未満</span><span class="ramp">${[42,45,48,50,52,55,58].map(v=>`<span style="background:${divColor(v,50,8)}"></span>`).join("")}</span><span>勝率 42% → 58%</span>${only?"":"<span>各表はその地域の数字で並べ替えています</span>"}${qp?"<span>クイック・プレイはランク区分がないため全ランクのみ</span>":""}<span class="swipe">← 表は横にスクロールできます →</span>${only?`<span><b>数字はアジアと韓国の平均</b>（「安定」「苦戦」も平均の勝率で判定）</span>`:""}</div>`;
   const rs = only ? ["Avg"] : shownRegs();
   html += `<div class="tgrid tgrid2 ${rs.length===1?"one":""}">${rs.map(oneTable).join("")}</div>`;
   $("#out").innerHTML = html;
