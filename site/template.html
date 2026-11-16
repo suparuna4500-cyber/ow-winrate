@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>OW 勝率 韓国×アジア</title>
+<style>
+:root{
+  color-scheme: light;
+  --bg:#f6f6f4; --surface:#fcfcfb; --surface-2:#f0efec; --line:#e2e1dc;
+  --text:#0b0b0b; --text-2:#52514e; --muted:#8a8984;
+  --kr:#2a78d6; --as:#eb6834; --am:#1baf7a; --eu:#eda100;
+  --pos:#2a78d6; --neg:#e34948; --mid:#f0efec;
+  --accent:#2a78d6;
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    color-scheme: dark;
+    --bg:#121211; --surface:#1a1a19; --surface-2:#242422; --line:#33332f;
+    --text:#f0efec; --text-2:#c3c2b7; --muted:#8f8e86;
+    --kr:#3987e5; --as:#d95926; --am:#199e70; --eu:#c98500;
+    --pos:#3987e5; --neg:#e66767; --mid:#383835;
+    --accent:#3987e5;
+  }
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;background:var(--bg);color:var(--text);font:14px/1.5 system-ui,-apple-system,"Hiragino Sans","Yu Gothic UI","Meiryo",sans-serif}
+header{padding:18px 20px 6px;max-width:1280px;margin:0 auto}
+h1{font-size:20px;margin:0 0 2px;letter-spacing:.02em}
+.sub{color:var(--text-2);font-size:12.5px}
+.sub a{color:var(--text-2)}
+main{max-width:1280px;margin:0 auto;padding:0 20px 40px}
+.filters{position:sticky;top:0;z-index:5;background:var(--bg);padding:10px 0;display:flex;flex-wrap:wrap;gap:8px 14px;align-items:flex-end;border-bottom:1px solid var(--line)}
+.f{display:flex;flex-direction:column;gap:3px}
+.f label{font-size:11px;color:var(--muted)}
+select,input[type=search]{font:inherit;font-size:13px;padding:6px 8px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--text);min-height:34px}
+select:disabled{opacity:.5}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:var(--surface)}
+.seg button{font:inherit;font-size:13px;border:0;background:none;color:var(--text-2);padding:6px 12px;cursor:pointer;min-height:34px}
+.seg button+button{border-left:1px solid var(--line)}
+.seg button[aria-pressed=true]{background:var(--surface-2);color:var(--text);font-weight:600}
+.chk{display:flex;gap:10px;align-items:center;min-height:34px;font-size:13px;color:var(--text-2)}
+.chk label{display:flex;gap:5px;align-items:center;cursor:pointer;font-size:13px;color:var(--text-2)}
+.sw{display:inline-block;width:10px;height:10px;border-radius:3px}
+.note{font-size:12px;color:var(--text-2);margin:10px 0 8px;display:flex;gap:16px;flex-wrap:wrap}
+.note b{color:var(--text)}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:auto;max-height:calc(100vh - 150px)}
+table{border-collapse:separate;border-spacing:0;width:100%;font-variant-numeric:tabular-nums}
+th,td{padding:6px 10px;text-align:right;white-space:nowrap;border-bottom:1px solid var(--line)}
+thead th{position:sticky;top:0;background:var(--surface);z-index:2;font-size:12px;font-weight:600;color:var(--text-2);cursor:pointer;user-select:none;vertical-align:bottom}
+th.sorted{color:var(--text)}
+th .arr{font-size:10px;margin-left:2px}
+td.hero,th.hero{text-align:left;position:sticky;left:0;background:var(--surface);z-index:1}
+thead th.hero{z-index:3}
+td.hero{font-weight:600}
+.role{display:inline-block;font-size:10.5px;font-weight:500;color:var(--text-2);border:1px solid var(--line);border-radius:4px;padding:0 4px;margin-left:6px;vertical-align:1px}
+.av{width:30px;height:30px;border-radius:50%;object-fit:cover;margin-right:9px;vertical-align:middle;background:var(--surface-2);border:2px solid var(--line);flex:none}
+.hn{display:inline-flex;align-items:center}
+.mx .av{width:22px;height:22px;margin-right:7px;border-width:1.5px}
+#tip .t{display:flex;align-items:center;gap:8px}
+#tip .t .av{width:32px;height:32px;margin:0}
+tbody tr:hover td{background:var(--surface-2)}
+.wr{display:flex;align-items:center;justify-content:flex-end;gap:6px}
+.bar{position:relative;width:64px;height:8px;background:var(--surface-2);border-radius:4px;flex:none}
+.bar i{position:absolute;top:0;bottom:0;border-radius:4px}
+.bar:after{content:"";position:absolute;left:50%;top:-2px;bottom:-2px;width:1px;background:var(--muted)}
+.pb{position:relative;width:64px;height:8px;background:var(--surface-2);border-radius:4px;flex:none}
+.pb i{position:absolute;left:0;top:0;bottom:0;border-radius:4px}
+.na{color:var(--muted)}
+.diff.p{color:var(--pos);font-weight:600}.diff.n{color:var(--neg);font-weight:600}
+.colhead{display:inline-flex;align-items:center;gap:5px}
+.rank{color:var(--muted);font-size:11px;font-weight:400;margin-right:6px;display:inline-block;width:18px;text-align:right}
+/* matrix */
+.mx td,.mx th{padding:0;border-bottom:1px solid var(--surface)}
+.mx thead tr:first-child th{top:0;height:22px}
+.mx thead tr:nth-child(2) th{top:22px;height:168px;vertical-align:bottom;padding:4px 0;border-bottom:1px solid var(--line)}
+.mx thead th .vt{writing-mode:vertical-rl;font-size:11.5px;font-weight:500;color:var(--text-2);display:inline-block;max-height:160px;overflow:hidden;text-overflow:ellipsis}
+.mx thead th.tp{font-size:11px;color:var(--muted);font-weight:500;text-align:center;border-bottom:0;padding:4px 0 0}
+.mx td.c{min-width:38px;height:26px;text-align:center;font-size:11px;cursor:default;border-right:2px solid var(--surface)}
+.mx td.hero{padding:0 10px;height:26px}
+.mx td.allc{font-weight:600}
+.mx th.sep,.mx td.sep{border-left:3px solid var(--surface)}
+.mx td.rg{position:sticky;left:var(--hw,150px);z-index:1;background:var(--surface);font-size:11px;color:var(--text-2);padding:0 8px 0 4px;white-space:nowrap;text-align:left}
+.mx th.rg{position:sticky;left:var(--hw,150px);z-index:3;background:var(--surface)}
+.mx tr.r2 td{border-bottom:3px solid var(--surface)}
+.mx tr.r1 td.hero{border-bottom:3px solid var(--surface)}
+.legend{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text-2);margin:10px 0 8px;flex-wrap:wrap}
+.ramp{display:flex;height:10px;border-radius:5px;overflow:hidden;width:180px}
+.ramp span{flex:1}
+#tip{position:fixed;pointer-events:none;z-index:20;background:var(--surface);color:var(--text);border:1px solid var(--line);border-radius:8px;padding:8px 10px;font-size:12px;box-shadow:0 4px 16px rgba(0,0,0,.15);display:none;min-width:170px}
+#tip .t{font-weight:600;margin-bottom:4px}
+#tip .r{display:flex;justify-content:space-between;gap:14px}
+#tip .r span:first-child{display:flex;align-items:center;gap:5px;color:var(--text-2)}
+footer{max-width:1280px;margin:0 auto;padding:0 20px 30px;color:var(--muted);font-size:11.5px}
+.empty{padding:30px;text-align:center;color:var(--text-2)}
+@media (max-width:700px){header,main,footer{padding-left:10px;padding-right:10px}.bar,.pb{width:40px}th,td{padding:5px 6px}}
+</style>
+</head>
+<body>
+<header>
+  <h1>オーバーウォッチ 勝率 — 韓国 × アジア</h1>
+  <div class="sub" id="asof"></div>
+</header>
+<main>
+  <div class="filters" role="group" aria-label="絞り込み">
+    <div class="f"><label>表示</label>
+      <div class="seg" id="view"><button data-v="list" aria-pressed="true">一覧</button><button data-v="maps" aria-pressed="false">マップ別</button></div></div>
+    <div class="f"><label for="mode">モード</label>
+      <select id="mode"><option value="2">ライバル・プレイ（競技）</option><option value="0">クイック・プレイ</option></select></div>
+    <div class="f"><label for="tier">ランク</label>
+      <select id="tier"></select></div>
+    <div class="f"><label for="input">入力</label>
+      <select id="input"><option value="PC">PC（マウス＆キーボード）</option><option value="Console">コンソール（コントローラー）</option></select></div>
+    <div class="f" id="mapWrap"><label for="map">マップ</label><select id="map"></select></div>
+    <div class="f"><label for="metric">指標</label>
+      <select id="metric"><option value="0">勝率</option><option value="1">ピック率</option><option value="2">BAN率</option></select></div>
+    <div class="f" id="mxWrap" hidden><label for="mxShow">表示する地域</label>
+      <select id="mxShow"><option value="both">韓国＋アジア（2段で並べる）</option><option value="Korea">韓国のみ</option><option value="Asia">アジアのみ</option><option value="diff">差（韓国−アジア）</option><option value="Americas">米州</option><option value="Europe">欧州</option></select></div>
+    <div class="f"><label for="order">並び順</label>
+      <select id="order"><option value="Korea">韓国の勝率が高い順</option><option value="Asia">アジアの勝率が高い順</option><option value="avg">韓国＋アジア平均の勝率が高い順</option><option value="diff">韓国がアジアより勝っている順</option><option value="Americas">米州の勝率が高い順</option><option value="Europe">欧州の勝率が高い順</option><option value="name">名前順</option></select></div>
+    <div class="f"><label for="role">ロール</label>
+      <select id="role"><option value="">すべて</option><option value="tank">タンク</option><option value="damage">ダメージ</option><option value="support">サポート</option></select></div>
+    <div class="f"><label for="q">ヒーロー検索</label><input id="q" type="search" placeholder="例: アナ" size="10"></div>
+    <div class="f" id="extraWrap"><label>他地域も表示</label>
+      <div class="chk"><label><input type="checkbox" id="xAm"><span class="sw" style="background:var(--am)"></span>米州</label><label><input type="checkbox" id="xEu"><span class="sw" style="background:var(--eu)"></span>欧州</label></div></div>
+  </div>
+  <div class="note" id="note"></div>
+  <div id="out"></div>
+</main>
+<footer>
+  出典: 韓国 = <a href="https://overwatch.nexon.com/hero/rate" style="color:inherit">Nexon 公式 영웅 통계</a>（韓国PCサーバーのみ・コンソールなし）／アジア・米州・欧州 = <a href="https://overwatch.blizzard.com/ja-jp/rates/" style="color:inherit">Blizzard 公式ヒーロー統計</a>。
+  数値は各公式ページが表示している「最新パッチ開始からの集計」をそのまま写したものです。勝率はミラー戦（同じヒーロー同士）を除いた値。表示中のデータは取得時点のもので、自動では更新されません。
+</footer>
+<div id="tip" role="tooltip"></div>
+<script>
+const D = /*__DATA__*/null;
+const REG = {Korea:{ja:"韓国",c:"--kr"},Asia:{ja:"アジア",c:"--as"},Americas:{ja:"米州",c:"--am"},Europe:{ja:"欧州",c:"--eu"}};
+const TIERS = [["All","全ランク"],["Bronze","ブロンズ"],["Silver","シルバー"],["Gold","ゴールド"],["Platinum","プラチナ"],["Emerald","エメラルド"],["Diamond","ダイヤモンド"],["Master","マスター"],["Grandmaster","グランドマスター＆チャンピオン"]];
+const ROLE_JA = {tank:"タンク",damage:"ダメージ",support:"サポート"};
+const MET = ["勝率","ピック率","BAN率"];
+const $ = s => document.querySelector(s);
+const st = {view:"list", mxCol:"all-maps"};
+try{ Object.assign(st, JSON.parse(localStorage.getItem("owwr-v2")||"{}")); }catch(e){}
+
+// ---- controls
+$("#tier").innerHTML = TIERS.map(([v,j])=>`<option value="${v}">${j}</option>`).join("");
+{
+  let html = "", last = null;
+  for (const m of D.maps){
+    if (m.type !== last){ if (last !== null) html += "</optgroup>"; if (m.type) html += `<optgroup label="${D.mapTypes[m.type]}">`; last = m.type; }
+    html += `<option value="${m.id}">${m.ja}</option>`;
+  }
+  $("#map").innerHTML = html + "</optgroup>";
+}
+const ctl = ["mode","tier","input","map","metric","role","mxShow","order"];
+for (const k of ctl){ if (st[k] != null && [...$("#"+k).options].some(o=>o.value===st[k])) $("#"+k).value = st[k]; }
+$("#xAm").checked = !!st.xAm; $("#xEu").checked = !!st.xEu;
+for (const k of ctl) $("#"+k).addEventListener("change", render);
+for (const k of ["xAm","xEu"]) $("#"+k).addEventListener("change", render);
+$("#q").addEventListener("input", render);
+for (const b of document.querySelectorAll("#view button")) b.addEventListener("click", ()=>{ st.view = b.dataset.v; render(); });
+
+function save(){
+  const o = {view:st.view, mxCol:st.mxCol, xAm:$("#xAm").checked, xEu:$("#xEu").checked};
+  for (const k of ctl) o[k] = $("#"+k).value;
+  try{ localStorage.setItem("owwr-v2", JSON.stringify(o)); }catch(e){}
+}
+
+// ---- data access
+function combo(region){
+  const mode = $("#mode").value, tier = mode === "0" ? "All" : $("#tier").value;
+  const input = region === "Korea" ? "PC" : $("#input").value;
+  return D.combos[`${region}_${mode}_${input}_${tier}`] || null;
+}
+// returns {heroId: [w,p,b]} (real numbers) for a region & map
+const cache = new Map();
+function table(region, map){
+  if (region === "Korea" && $("#input").value === "Console") return null;
+  const c = combo(region); if (!c) return null;
+  const key = region+"|"+$("#mode").value+"|"+$("#input").value+"|"+$("#tier").value+"|"+map;
+  if (cache.has(key)) return cache.get(key);
+  const flat = c.m[map]; if (!flat){ cache.set(key,null); return null; }
+  const out = {};
+  c.h.forEach((h,i)=>{ const v = flat.slice(i*3,i*3+3).map(x=>x==null?null:x/10); if (v.some(x=>x!=null)) out[h]=v; });
+  cache.set(key,out); return out;
+}
+function heroes(){
+  const role = $("#role").value, q = $("#q").value.trim().toLowerCase();
+  return Object.entries(D.heroes).filter(([id,h])=>(!role||h.role===role) &&
+    (!q || (h.ja||"").toLowerCase().includes(q) || (h.en||"").toLowerCase().includes(q) || (h.ko||"").includes(q) || id.includes(q)))
+    .map(([id,h])=>({id,...h}));
+}
+const av = h => D.img[h.id] ? `<img class="av" src="${D.img[h.id]}" alt="" style="border-color:${h.color||"var(--line)"}">` : "";
+const fmt = v => v==null ? "—" : v.toFixed(1)+"%";
+const fmtD = v => v==null ? "—" : (v>0?"+":v<0?"−":"±")+Math.abs(v).toFixed(1);
+
+// diverging color for win-rate / diff, sequential for pick/ban
+function cssv(n){ return getComputedStyle(document.documentElement).getPropertyValue(n).trim(); }
+function hex2rgb(h){ h=h.replace("#",""); return [0,2,4].map(i=>parseInt(h.slice(i,i+2),16)); }
+function mix(a,b,t){ const A=hex2rgb(a),B=hex2rgb(b); return `rgb(${A.map((x,i)=>Math.round(x+(B[i]-x)*t)).join(",")})`; }
+function divColor(v, center, span){
+  if (v==null) return "transparent";
+  const t = Math.max(-1, Math.min(1, (v-center)/span));
+  return t>=0 ? mix(cssv("--mid"), cssv("--pos"), t) : mix(cssv("--mid"), cssv("--neg"), -t);
+}
+function seqColor(v, max){ if (v==null) return "transparent"; return mix(cssv("--mid"), cssv("--pos"), Math.min(1, v/max)); }
+function inkFor(bg){ const m = bg.match(/\d+/g); if(!m) return ""; const [r,g,b]=m.map(Number); return (0.299*r+0.587*g+0.114*b) > 150 ? "#0b0b0b" : "#ffffff"; }
+
+// sort key: always WIN RATE (index 0) on the given map, per the 並び順 selector
+function winOf(r, map, hid){ return table(r, map)?.[hid]?.[0] ?? null; }
+function sortKey(hid, map){
+  const o = $("#order").value;
+  if (o === "avg"){ const k=winOf("Korea",map,hid), a=winOf("Asia",map,hid); return k!=null&&a!=null ? (k+a)/2 : (k ?? a); }
+  if (o === "diff"){ const k=winOf("Korea",map,hid), a=winOf("Asia",map,hid); return k!=null&&a!=null ? k-a : null; }
+  return winOf(o, map, hid);
+}
+function sortHeroes(list, map, get=x=>x){
+  if ($("#order").value === "name") return list.sort((a,b)=>(get(a).ja||get(a).id).localeCompare(get(b).ja||get(b).id,"ja"));
+  return list.sort((a,b)=>{ const x=sortKey(get(a).id,map), y=sortKey(get(b).id,map);
+    if (x==null&&y==null) return 0; if (x==null) return 1; if (y==null) return -1; return y-x; });
+}
+function regionsShown(){
+  const r = ["Korea","Asia"]; if ($("#xAm").checked) r.push("Americas"); if ($("#xEu").checked) r.push("Europe"); return r;
+}
+
+// ---- views
+function render(){
+  for (const b of document.querySelectorAll("#view button")) b.setAttribute("aria-pressed", b.dataset.v===st.view);
+  $("#tier").disabled = $("#mode").value === "0";
+  $("#mapWrap").hidden = st.view !== "list";
+  $("#mxWrap").hidden = st.view !== "maps";
+  save();
+  const notes = [];
+  const tierJa = $("#mode").value === "0" ? "（クイックはランク区分なし）" : "";
+  notes.push(`<span>データ取得: <b>${D.asof}</b></span>`);
+  if (tierJa) notes.push(`<span>${tierJa}</span>`);
+  if ($("#input").value === "Console") notes.push(`<span>韓国（ネクソン）はPCのみ公開のため、コンソール選択時は韓国が「—」になります</span>`);
+  $("#note").innerHTML = notes.join("");
+  st.view === "list" ? renderList() : renderMatrix();
+}
+
+function renderList(){
+  const map = $("#map").value, mi = +$("#metric").value, regs = regionsShown();
+  const T = {}; for (const r of regs) T[r] = table(r, map);
+  const rows = heroes().map(h=>{
+    const o = {h}; for (const r of regs) o[r] = T[r]?.[h.id]?.[mi] ?? null;
+    o.diff = (o.Korea!=null && o.Asia!=null) ? +(o.Korea-o.Asia).toFixed(1) : null;
+    return o;
+  }).filter(o=>regs.some(r=>o[r]!=null));
+  sortHeroes(rows, map, o=>o.h);
+  const ord = $("#order").value;
+  const maxV = Math.max(1, ...rows.flatMap(o=>regs.map(r=>o[r]??0)));
+  const th = (k, label, extra="") => `<th data-k="${k}" class="${ord===k?"sorted":""} ${extra}" aria-sort="${ord===k?(k==="name"?"ascending":"descending"):"none"}">${label}${ord===k&&k!=="name"?`<span class="arr">▼</span>`:""}</th>`;
+  let html = `<table><thead><tr class="cols">${th("name","ヒーロー","hero")}`;
+  for (const r of regs) html += th(r, `<span class="colhead"><span class="sw" style="background:var(${REG[r].c})"></span>${REG[r].ja} ${MET[mi]}</span>`);
+  html += th("diff", "差（韓国−アジア）") + `</tr></thead><tbody>`;
+  if (!rows.length) html += `<tr><td colspan="${regs.length+2}" class="empty">この条件のデータはありません</td></tr>`;
+  rows.forEach((o,i)=>{
+    const h = o.h;
+    html += `<tr data-h="${h.id}"><td class="hero"><span class="hn"><span class="rank">${i+1}</span>${av(h)}${h.ja||h.en}<span class="role">${ROLE_JA[h.role]||""}</span></span></td>`;
+    for (const r of regs){
+      const v = o[r];
+      if (v==null){ html += `<td class="na">—</td>`; continue; }
+      let bar;
+      if (mi===0){
+        const t = Math.max(-1,Math.min(1,(v-50)/10)), w = Math.abs(t)*50;
+        bar = `<span class="bar"><i style="${t>=0?`left:50%;width:${w}%;background:var(--pos)`:`right:50%;width:${w}%;background:var(--neg)`}"></i></span>`;
+      } else bar = `<span class="pb"><i style="width:${v/maxV*100}%;background:var(${REG[r].c})"></i></span>`;
+      html += `<td><span class="wr">${fmt(v)}${bar}</span></td>`;
+    }
+    html += `<td class="diff ${o.diff>0?"p":o.diff<0?"n":""}">${fmtD(o.diff)}</td></tr>`;
+  });
+  html += `</tbody></table>`;
+  $("#out").innerHTML = `<div class="card">${html}</div>`;
+  for (const t of document.querySelectorAll("#out thead th[data-k]")) t.addEventListener("click", ()=>{
+    $("#order").value = t.dataset.k; render();
+  });
+  bindTips(regs, map);
+}
+
+function renderMatrix(){
+  const mi = +$("#metric").value, show = $("#mxShow").value;
+  const maps = D.maps;
+  const regs = ["Korea","Asia","Americas","Europe"];
+  const T = {}; for (const m of maps){ T[m.id] = {}; for (const r of regs) T[m.id][r] = table(r, m.id); }
+  const both = show==="both";
+  const val = (hid, mid, reg) => {
+    if (reg) return T[mid][reg]?.[hid]?.[mi] ?? null;
+    if (both) return T[mid].Korea?.[hid]?.[mi] ?? null;
+    if (show==="diff"){ const k=T[mid].Korea?.[hid]?.[mi], a=T[mid].Asia?.[hid]?.[mi]; return (k!=null&&a!=null)? +(k-a).toFixed(1) : null; }
+    return T[mid][show]?.[hid]?.[mi] ?? null;
+  };
+  let hs = heroes().filter(h=>maps.some(m=>val(h.id,m.id)!=null || (both && val(h.id,m.id,"Asia")!=null)));
+  if (!maps.some(m=>m.id===st.mxCol)) st.mxCol = "all-maps";
+  sortHeroes(hs, st.mxCol);
+  const ordName = $("#order").value === "name";
+  let maxSeq = 1; if (mi>0 && show!=="diff") for (const h of hs) for (const m of maps){ maxSeq = Math.max(maxSeq, val(h.id,m.id)??0); if (both) maxSeq = Math.max(maxSeq, val(h.id,m.id,"Asia")??0); }
+  const color = v => show==="diff" ? divColor(v, 0, 6) : mi===0 ? divColor(v, 50, 8) : seqColor(v, maxSeq);
+  // legend
+  let leg;
+  if (show==="diff") leg = `<span>韓国の方が低い</span><span class="ramp">${[-6,-4,-2,0,2,4,6].map(v=>`<span style="background:${divColor(v,0,6)}"></span>`).join("")}</span><span>韓国の方が高い（${MET[mi]}の差・pt）</span>`;
+  else if (mi===0) leg = `<span>42%</span><span class="ramp">${[42,45,48,50,52,55,58].map(v=>`<span style="background:${divColor(v,50,8)}"></span>`).join("")}</span><span>58%（50%＝グレー）</span>`;
+  else leg = `<span>0%</span><span class="ramp">${[0,.2,.4,.6,.8,1].map(t=>`<span style="background:${seqColor(t*maxSeq,maxSeq)}"></span>`).join("")}</span><span>${maxSeq.toFixed(0)}%</span>`;
+  const label = show==="diff" ? "差（韓国−アジア）" : both ? "韓国（上段）・アジア（下段）" : REG[show].ja;
+  let html = `<div class="legend"><b>${label}・${MET[mi]}</b>${leg}<span style="margin-left:auto">セルにカーソルを合わせると全地域の数値が出ます／マップ名クリックでそのマップの勝率順に並べ替え（いま: ${D.maps.find(m=>m.id===st.mxCol)?.ja}）</span></div>`;
+  // header: type groups
+  html += `<div class="card"><table class="mx"><thead><tr><th class="hero tp"></th>${both?'<th class="rg tp"></th>':''}`;
+  let prev = null, span = 0, groups = [];
+  for (const m of maps){ if (m.type!==prev){ groups.push([m.type,1]); prev=m.type; } else groups[groups.length-1][1]++; }
+  html += groups.map(([t,n])=>`<th class="tp ${t?"sep":""}" colspan="${n}">${t?D.mapTypes[t]:""}</th>`).join("") + `</tr><tr>`;
+  const sk = k => (k==="name" ? ordName : (!ordName && st.mxCol===(k==="all"?"all-maps":k))) ? (k==="name"?" ▲":" ▼") : "";
+  html += `<th class="hero" data-k="name" style="cursor:pointer;vertical-align:bottom;padding:6px 10px">ヒーロー${sk("name")}</th>${both?'<th class="rg"></th>':''}`;
+  prev = null;
+  for (const m of maps){
+    const k = m.id==="all-maps" ? "all" : m.id;
+    html += `<th data-k="${k}" class="${m.type!==prev&&m.type?"sep":""}" style="cursor:pointer" title="${m.ja}"><span class="vt">${m.ja}${sk(k)}</span></th>`; prev = m.type;
+  }
+  html += `</tr></thead><tbody>`;
+  const cells = (h, reg) => {
+    let out = "", prev = null;
+    for (const m of maps){
+      const v = val(h.id, m.id, reg), bg = color(v);
+      out += `<td class="c ${m.id==="all-maps"?"allc":""} ${m.type!==prev&&m.type?"sep":""}" data-h="${h.id}" data-m="${m.id}" style="background:${bg};color:${v==null?"var(--muted)":inkFor(bg)}">${v==null?"·":(show==="diff"?fmtD(v):v.toFixed(1))}</td>`;
+      prev = m.type;
+    }
+    return out;
+  };
+  const rgl = r => `<td class="rg"><span class="sw" style="background:var(${REG[r].c});margin-right:4px"></span>${REG[r].ja}</td>`;
+  for (const h of hs){
+    if (both){
+      html += `<tr class="r1"><td class="hero" rowspan="2"><span class="hn">${av(h)}${h.ja||h.en}</span></td>${rgl("Korea")}${cells(h,"Korea")}</tr>`;
+      html += `<tr class="r2">${rgl("Asia")}${cells(h,"Asia")}</tr>`;
+    } else {
+      html += `<tr><td class="hero"><span class="hn">${av(h)}${h.ja||h.en}</span></td>${cells(h)}</tr>`;
+    }
+  }
+  html += `</tbody></table></div>`;
+  $("#out").innerHTML = html;
+  const hc = document.querySelector("#out .mx th.hero[data-k]"); if (hc) document.querySelector("#out .mx").style.setProperty("--hw", hc.offsetWidth+"px");
+  for (const t of document.querySelectorAll("#out thead th[data-k]")) t.addEventListener("click", ()=>{
+    const k = t.dataset.k;
+    if (k === "name") $("#order").value = "name";
+    else { st.mxCol = k==="all" ? "all-maps" : k; if ($("#order").value==="name") $("#order").value = "Korea"; }
+    render();
+  });
+  const tip = $("#tip");
+  const out = $("#out");
+  out.onmousemove = e=>{
+    const td = e.target.closest("td.c"); if (!td){ tip.style.display="none"; return; }
+    const h = D.heroes[td.dataset.h], m = maps.find(x=>x.id===td.dataset.m);
+    showTip(e, `${av({...h,id:td.dataset.h})}${h.ja} ・ ${m.ja}`, regs.map(r=>[r, T[m.id][r]?.[td.dataset.h]]));
+  };
+  out.onmouseleave = ()=> tip.style.display="none";
+}
+
+function showTip(e, title, rows){
+  const tip = $("#tip");
+  let s = `<div class="t">${title}</div>`;
+  s += `<div class="r" style="color:var(--muted);font-size:11px"><span></span><span>勝率 / ピック / BAN</span></div>`;
+  for (const [r,v] of rows){
+    s += `<div class="r"><span><span class="sw" style="background:var(${REG[r].c})"></span>${REG[r].ja}</span><span>${v? v.map(x=>x==null?"—":x.toFixed(1)).join(" / ") : "—"}</span></div>`;
+  }
+  tip.innerHTML = s; tip.style.display = "block";
+  const w = tip.offsetWidth, hgt = tip.offsetHeight;
+  let x = e.clientX + 14, y = e.clientY + 14;
+  if (x + w > innerWidth - 8) x = e.clientX - w - 14;
+  if (y + hgt > innerHeight - 8) y = e.clientY - hgt - 14;
+  tip.style.left = x+"px"; tip.style.top = y+"px";
+}
+function bindTips(regs, map){
+  const out = $("#out"), tip = $("#tip");
+  const all = ["Korea","Asia","Americas","Europe"];
+  out.onmousemove = e=>{
+    const tr = e.target.closest("tbody tr[data-h]"); if (!tr){ tip.style.display="none"; return; }
+    const h = D.heroes[tr.dataset.h], m = D.maps.find(x=>x.id===map);
+    showTip(e, `${av({...h,id:tr.dataset.h})}${h.ja} ・ ${m.ja}`, all.map(r=>[r, table(r,map)?.[tr.dataset.h]]));
+  };
+  out.onmouseleave = ()=> tip.style.display="none";
+}
+
+$("#asof").innerHTML = `韓国（ネクソン公式）とアジア（Blizzard公式）の全ヒーローの勝率・ピック率・BAN率を並べて表示。マップ・ランク・モード別。`;
+render();
+</script>
+</body>
+</html>

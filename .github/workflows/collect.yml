@@ -1,0 +1,34 @@
+name: collect-daily
+
+on:
+  schedule:
+    - cron: "17 3 * * *"   # 毎日 12:17 JST（公式の数値を取り直してページを作り直す）
+  workflow_dispatch: {}     # Actions画面から手動実行も可
+
+permissions:
+  contents: write
+
+concurrency:
+  group: collect
+  cancel-in-progress: false
+
+jobs:
+  collect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install requests pillow
+      - name: Collect
+        run: python collector/collect.py
+      - name: Commit
+        run: |
+          git config user.name  "ow-winrate-bot"
+          git config user.email "ow-winrate-bot@users.noreply.github.com"
+          git add data index.html
+          git diff --cached --quiet && exit 0
+          git commit -m "data: $(TZ=Asia/Tokyo date +%F)"
+          git push
