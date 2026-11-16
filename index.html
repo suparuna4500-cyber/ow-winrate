@@ -272,14 +272,14 @@ footer{max-width:1440px;margin:0 auto;padding:0 20px 30px;color:var(--muted);fon
       <select id="role"><option value="">すべて</option><option value="tank">タンク</option><option value="damage">ダメージ</option><option value="support">サポート</option></select></div>
     <div class="f"><label for="q">ヒーロー検索</label><input id="q" type="search" placeholder="例: アナ" size="10"></div>
     <div class="f" id="tStableWrap"><label>絞り込み</label>
-      <div class="chk"><label><input type="checkbox" id="onlyStable">アジアと韓国の平均で1つの表にする（全ヒーロー表示）</label></div></div>
+      <div class="chk"><label><input type="checkbox" id="stableOnly">「安定」（最低勝率50%以上）のヒーローだけ</label><label><input type="checkbox" id="onlyStable">アジアと韓国の平均で1つの表にする</label></div></div>
   </div>
   <div class="note" id="note"></div>
   <div id="out"></div>
 </main>
 <footer>
   出典: 韓国 = <a href="https://overwatch.nexon.com/hero/rate" style="color:inherit">Nexon 公式 영웅 통계</a>（韓国PCサーバーのみ・コンソールなし）／アジア・米州・欧州 = <a href="https://overwatch.blizzard.com/ja-jp/rates/" style="color:inherit">Blizzard 公式ヒーロー統計</a>。
-  数値は各公式ページが表示している「最新パッチ開始からの集計」をそのまま写したものです。勝率はミラー戦（同じヒーロー同士）を除いた値。表示中のデータは取得時点のもので、自動では更新されません。
+  数値は各公式ページが表示している「最新パッチ開始からの集計」をそのまま写したものです。勝率はミラー戦（同じヒーロー同士）を除いた値。データは毎日1回（12時ごろ）自動で更新されます。過去シーズンは owherostats.com の集計と、シーズン切り替わり時に保存した公式の数字です。
 </footer>
 <div id="tip" role="tooltip"></div>
 <script>
@@ -337,7 +337,7 @@ $("#tRanks").innerHTML = TIERS.filter(t=>t[0]!=="All").map(([v,j])=>`<label><inp
 $("#q").addEventListener("input", render);
 
 function save(){
-  const o = {sortKey:st.sortKey, tRanks:st.tRanks, onlyStable:$("#onlyStable").checked};
+  const o = {sortKey:st.sortKey, tRanks:st.tRanks, onlyStable:$("#onlyStable").checked, stableOnly:$("#stableOnly").checked};
   for (const k of ctl) o[k] = $("#"+k).value;
   try{ localStorage.setItem("owwr-v4", JSON.stringify(o)); }catch(e){}
 }
@@ -414,7 +414,7 @@ function renderTiers(){
   const stableIn = reg => { const T = ranks.map(([t])=>tierTable(reg, t, map)); const set = new Set();
     for (const h of heroes()){ const wr = T.map(tb=>tb?.[h.id]?.[0]).filter(x=>x!=null); if (wr.length===ranks.length && wr.every(x=>x>=50)) set.add(h.id); }
     return set; };
-  const only = $("#onlyStable").checked;
+  const only = $("#onlyStable").checked, sOnly = $("#stableOnly").checked;
   const bothSet = null;
   // 平均表：アジアと韓国の数字を帯ごとに平均（片方しかない値はそのまま）
   const avgTable = t => { const a = tierTable("Asia", t, map), k = tierTable("Korea", t, map); if (!a && !k) return null;
@@ -428,7 +428,7 @@ function renderTiers(){
       const wr = v.map(x=>x[0]).filter(x=>x!=null), full = wr.length===ranks.length;
       return {h, v, min: full ? Math.min(...wr) : null, avg: wr.length ? wr.reduce((a,b)=>a+b,0)/wr.length : null,
               up: full && wr.every(x=>x>=50), down: full && wr.every(x=>x<50)};
-    }).filter(o=>o.v.some(x=>x[0]!=null) && (!bothSet || bothSet.has(o.h.id)));
+    }).filter(o=>o.v.some(x=>x[0]!=null) && (!bothSet || bothSet.has(o.h.id)) && (!sOnly || (o.min!=null && o.min>=50)));
     const mean = xs => { xs = xs.filter(x=>x!=null); return xs.length ? xs.reduce((a,b)=>a+b,0)/xs.length : null; };
     if (ravg) rows.forEach(o=>{ o.v = [[0,1,2].map(i=>mean(o.v.map(x=>x[i])))]; });
     const key = o => sortBy==="avg" ? o.avg : o.min;
@@ -443,7 +443,7 @@ function renderTiers(){
       if (multi && !ravg && !rmin) h += cell(o.avg,"gs");
       h += cell(o.min,"gs") + `</tr>`;
     });
-    if (!rows.length) h += `<tr><td colspan="${(rmin?0:ravg?1:ranks.length)*2+2+(multi && !ravg && !rmin ? 1 : 0)}" class="empty">${period() && !(pinfo().regions||[]).includes(reg) ? `この期間は${REG[reg].ja}のデータがありません` : "この条件のデータはありません"}</td></tr>`;
+    if (!rows.length) h += `<tr><td colspan="${(rmin?0:ravg?1:ranks.length)*2+2+(multi && !ravg && !rmin ? 1 : 0)}" class="empty">${period() && !(pinfo().regions||[]).includes(reg) ? `この期間は${REG[reg].ja}のデータがありません` : sOnly ? "この条件で「安定」のヒーローはいません（ランク帯やロールを変えてみてください）" : "この条件のデータはありません"}</td></tr>`;
     return h + `</tbody></table></div>`;
   };
   let html = `<div class="legend"><b>${mapJa}・${ranks.map(rj).join(" / ")}</b><span><span class="badge">安定</span>＝選んだ帯すべてで勝率50%以上　<span class="badge n">苦戦</span>＝すべてで50%未満</span><span class="ramp">${[42,45,48,50,52,55,58].map(v=>`<span style="background:${divColor(v,50,8)}"></span>`).join("")}</span><span>勝率 42% → 58%</span>${only?"":"<span>各表はその地域の数字で並べ替えています</span>"}${qp?"<span>クイック・プレイはランク区分がないため全ランクのみ</span>":""}${multi && !rmin?`<span><b>${sortBy==="avg"?"平均勝率":"最低勝率"}が高い順</b>（「平均勝率」「最低勝率」の列名をクリックで並び替え）</span>`:""}${rmin?"<span><b>最低勝率だけを表示中</b>（選んだ帯の中で一番低い勝率。高い順）</span>":""}<span class="swipe">← 表は横にスクロールできます →</span>${only?`<span><b>数字はアジアと韓国の平均</b>（「安定」「苦戦」も平均の勝率で判定）</span>`:""}</div>`;
@@ -474,6 +474,8 @@ function showTip(e, title, rows){
   $("#fToggle").addEventListener("click", ()=>setOpen($("#filters").classList.contains("closed")));
   mq.addEventListener("change", e=>setOpen(!e.matches)); }
 $("#out").addEventListener("click", e=>{ const th = e.target.closest("th[data-sort]"); if (!th) return; st.sortKey = th.dataset.sort; render(); });
+$("#stableOnly").checked = !!st.stableOnly;
+$("#stableOnly").addEventListener("change", e=>{ if (e.target.checked) st.sortKey = "avg"; render(); });
 $("#onlyStable").checked = !!st.onlyStable;
 $("#onlyStable").addEventListener("change", render);
 $("#theme").value = document.documentElement.dataset.theme;
