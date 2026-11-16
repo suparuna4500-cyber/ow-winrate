@@ -10,7 +10,11 @@ def jp(t):
     d, hm = t.split(" "); y, mo, da = d.split("-"); return f"{int(mo)}月{int(da)}日 {hm}"
 a = idx.get("asof", {})
 asof = f"韓国 {jp(a['Korea'])}／アジア・米州・欧州 {jp(a['Blizzard'])}（日本時間）" if a.get("Korea") != a.get("Blizzard") else f"{jp(a['Korea'])}（日本時間）"
-D = {"img": json.load(open(f"{ROOT}/data/img.json")), "asof": asof, "heroes": heroes,
+try:
+    periods = json.load(open(f"{ROOT}/data/periods/index.json", encoding="utf-8"))
+except Exception:
+    periods = {"periods": [], "current": None}
+D = {"periods": periods, "img": json.load(open(f"{ROOT}/data/img.json")), "asof": asof, "heroes": heroes,
      "maps": idx["maps"], "mapTypes": idx["mapTypes"], "combos": combos}
 html = open(f"{ROOT}/site/template.html", encoding="utf-8").read().replace("/*__DATA__*/null", json.dumps(D, ensure_ascii=False, separators=(",", ":")))
 open(f"{ROOT}/index.html", "w", encoding="utf-8").write(html)

@@ -1,0 +1,112 @@
+{
+ "periods": [
+  {
+   "id": "reign-of-talon-season-5-a-grim-doctrine",
+   "title": "Reign of Talon - Season 5: A Grim Doctrine",
+   "ja": "シーズン5 前半",
+   "start": "2026-10-06",
+   "end": "2026-11-02",
+   "regions": [
+    "Asia",
+    "Korea"
+   ]
+  },
+  {
+   "id": "mideason-rot-s4",
+   "title": "Mideason ROT: S4",
+   "ja": "シーズン4 後半",
+   "start": "2026-09-08",
+   "end": "2026-10-05",
+   "regions": [
+    "Asia",
+    "Korea"
+   ]
+  },
+  {
+   "id": "reign-of-talon-season-4-heroes-of-busan",
+   "title": "Reign of Talon - Season 4: Heroes of Busan",
+   "ja": "シーズン4 前半",
+   "start": "2026-08-11",
+   "end": "2026-09-07",
+   "regions": [
+    "Asia"
+   ]
+  },
+  {
+   "id": "reign-of-talon-season-3-into-the-tiger-s-den",
+   "title": "Reign of Talon: Season 3 - Into The Tiger's Den",
+   "ja": "シーズン3",
+   "start": "2026-06-16",
+   "end": "2026-08-10",
+   "regions": [
+    "Asia"
+   ]
+  },
+  {
+   "id": "10th-anniversary",
+   "title": "10th Anniversary",
+   "ja": "シーズン2 後半・10周年",
+   "start": "2026-05-12",
+   "end": "2026-06-15",
+   "regions": [
+    "Asia"
+   ]
+  },
+  {
+   "id": "season-2-summit",
+   "title": "Season 2: Summit",
+   "ja": "シーズン2 前半",
+   "start": "2026-04-14",
+   "end": "2026-05-11",
+   "regions": [
+    "Asia"
+   ]
+  },
+  {
+   "id": "season-1-mid-season",
+   "title": "Season 1 - Mid Season",
+   "ja": "シーズン1 後半",
+   "start": "2026-03-10",
+   "end": "2026-04-13",
+   "regions": [
+    "Asia"
+   ]
+  },
+  {
+   "id": "overwatch-season-1",
+   "title": "Overwatch Season 1",
+   "ja": "シーズン1 前半",
+   "start": "2026-02-10",
+   "end": "2026-03-09",
+   "regions": [
+    "Asia"
+   ]
+  },
+  {
+   "id": "season-20-midseason",
+   "title": "Season 20 MidSeason",
+   "ja": "シーズン20 後半",
+   "start": "2026-01-08",
+   "end": "2026-02-09",
+   "regions": [
+    "Asia"
+   ]
+  },
+  {
+   "id": "season-20-vendetta",
+   "title": "Season 20: Vendetta",
+   "ja": "シーズン20 前半",
+   "start": "2025-12-09",
+   "end": "2026-01-07",
+   "regions": [
+    "Asia"
+   ]
+  }
+ ],
+ "current": {
+  "id": "season-5-midseason",
+  "title": "Season 5 Midseason",
+  "ja": "シーズン5 後半",
+  "start": "2026-11-03"
+ }
+}

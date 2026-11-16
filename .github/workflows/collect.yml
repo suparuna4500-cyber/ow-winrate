@@ -21,7 +21,9 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - run: pip install requests pillow
+      - run: pip install requests pillow beautifulsoup4
+      - name: Archive past seasons
+        run: python collector/periods.py || true   # 終わったシーズンの最終値を保存（失敗しても続行）
       - name: Collect
         run: python collector/collect.py
       - name: Commit
