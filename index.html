@@ -425,7 +425,7 @@ function renderTiers(){
     const mean = xs => { xs = xs.filter(x=>x!=null); return xs.length ? xs.reduce((a,b)=>a+b,0)/xs.length : null; };
     if (ravg) rows.forEach(o=>{ o.v = [[0,1,2].map(i=>mean(o.v.map(x=>x[i])))]; });
     const mi = ravg ? 0 : mid;
-    const key = o => rmin && (sortBy==="min" || sortBy==="avg") ? o.min : ravg && (sortBy==="min" || sortBy==="avg") ? o.v[0][0] : sortBy==="min" ? o.min : sortBy==="avg" ? o.avg : sortBy==="pick" ? o.v[mi][1] : sortBy==="ban" ? o.v[mi][2] : null;
+    const key = o => rmin && (sortBy==="min" || sortBy==="avg") ? o.min : sortBy==="min" ? o.min : sortBy==="avg" ? o.avg : sortBy==="pick" ? o.v[mi][1] : sortBy==="ban" ? o.v[mi][2] : null;
     if (sortBy === "name") rows.sort((a,b)=>(a.h.ja||a.h.id).localeCompare(b.h.ja||b.h.id,"ja"));
     else rows.sort((a,b)=>{ const x=key(a), y=key(b); if (x==null&&y==null) return 0; if (x==null) return 1; if (y==null) return -1; return y-x; });
     let h = `<div class="card tcard tc-${reg}${rmin?" minonly":""}"><h3 class="tth"><span class="sw" style="background:var(${REG[reg].c})"></span> ${REG[reg].ja}${reg==="Korea"&&$("#input").value==="Console"?" <small>（韓国はPCのみ公開のためデータなし）</small>":""}</h3><table class="tv"><thead>`;
@@ -440,7 +440,7 @@ function renderTiers(){
     if (!rows.length) h += `<tr><td colspan="${(rmin?0:ravg?1:ranks.length)*3+2}" class="empty">${period() && !(pinfo().regions||[]).includes(reg) ? `この期間は${REG[reg].ja}のデータがありません` : "この条件のデータはありません"}</td></tr>`;
     return h + `</tbody></table></div>`;
   };
-  let html = `<div class="legend"><b>${mapJa}・${ranks.map(rj).join(" / ")}</b><span><span class="badge">安定</span>＝選んだ帯すべてで勝率50%以上　<span class="badge n">苦戦</span>＝すべてで50%未満</span><span class="ramp">${[42,45,48,50,52,55,58].map(v=>`<span style="background:${divColor(v,50,8)}"></span>`).join("")}</span><span>勝率 42% → 58%</span>${only?"":"<span>各表はその地域の数字で並べ替えています</span>"}${qp?"<span>クイック・プレイはランク区分がないため全ランクのみ</span>":""}${ravg?"<span><b>選んだ帯の平均を表示中</b>（平均の勝率が高い順。「安定」「苦戦」と最低勝率は帯ごとの勝率で判定）</span>":""}${rmin?"<span><b>最低勝率だけを表示中</b>（選んだ帯の中で一番低い勝率。高い順）</span>":""}<span class="swipe">← 表は横にスクロールできます →</span>${only?`<span><b>数字はアジアと韓国の平均</b>（「安定」「苦戦」も平均の勝率で判定）</span>`:""}</div>`;
+  let html = `<div class="legend"><b>${mapJa}・${ranks.map(rj).join(" / ")}</b><span><span class="badge">安定</span>＝選んだ帯すべてで勝率50%以上　<span class="badge n">苦戦</span>＝すべてで50%未満</span><span class="ramp">${[42,45,48,50,52,55,58].map(v=>`<span style="background:${divColor(v,50,8)}"></span>`).join("")}</span><span>勝率 42% → 58%</span>${only?"":"<span>各表はその地域の数字で並べ替えています</span>"}${qp?"<span>クイック・プレイはランク区分がないため全ランクのみ</span>":""}${ravg?`<span><b>選んだ帯の平均を表示中</b>（${sortBy==="min"?"最低勝率":sortBy==="avg"?"平均勝率":"選んだ並び順"}が高い順。「並び順」で切り替え）</span>`:""}${rmin?"<span><b>最低勝率だけを表示中</b>（選んだ帯の中で一番低い勝率。高い順）</span>":""}<span class="swipe">← 表は横にスクロールできます →</span>${only?`<span><b>数字はアジアと韓国の平均</b>（「安定」「苦戦」も平均の勝率で判定）</span>`:""}</div>`;
   const rs = only ? ["Avg"] : shownRegs();
   html += `<div class="tgrid tgrid2 ${rs.length===1?"one":""} ${rmin?"mins":""}">${rs.map(oneTable).join("")}</div>`;
   $("#out").innerHTML = html;
