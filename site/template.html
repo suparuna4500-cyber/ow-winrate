@@ -339,7 +339,7 @@ function save(){
 // ---- data access
 function heroes(){
   const role = $("#role").value, q = $("#q").value.trim().toLowerCase();
-  return Object.entries(D.heroes).filter(([id,h])=>(!role||h.role===role) &&
+  return Object.entries(D.heroes).filter(([id,h])=>(q || !role || h.role===role) &&
     (!q || (h.ja||"").toLowerCase().includes(q) || (h.en||"").toLowerCase().includes(q) || (h.ko||"").includes(q) || id.includes(q)))
     .map(([id,h])=>({id,...h}));
 }
