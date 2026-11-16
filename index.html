@@ -211,7 +211,7 @@ tbody tr:hover td{background:var(--surface-2)}
   .filters.closed{padding-bottom:8px}
   .f{min-width:0}
   .f select,.f input[type=search]{width:100%;min-width:0;min-height:38px;font-size:14px}
-  .f:first-child,#tRankWrap,#tStableWrap,#tSortWrap{grid-column:1/-1}
+  .f:first-child,#tRankWrap,#tStableWrap,#tSortWrap,#roleWrap{grid-column:1/-1}
   .seg{display:flex}.seg button{flex:1;min-height:38px}
   .chk{flex-wrap:wrap;gap:6px 12px;min-height:0}
   .chk label{white-space:nowrap;font-size:13px;min-height:30px}
@@ -268,8 +268,8 @@ footer{max-width:1440px;margin:0 auto;padding:0 20px 30px;color:var(--muted);fon
       </div>
     <div class="f" id="colsWrap"><label for="cols">表示する列</label>
       <select id="cols"><option value="each">ランク帯ごと（勝率・ピック）</option><option value="avg">選んだ帯の平均だけ</option><option value="min">最低勝率だけ</option></select></div>
-    <div class="f"><label for="role">ロール</label>
-      <select id="role"><option value="">すべて</option><option value="tank">タンク</option><option value="damage">ダメージ</option><option value="support">サポート</option></select></div>
+    <div class="f" id="roleWrap"><label>ロール（未選択＝すべて）</label>
+      <div class="chk" id="roles"><label><input type="checkbox" value="tank">タンク</label><label><input type="checkbox" value="damage">ダメージ</label><label><input type="checkbox" value="support">サポート</label></div></div>
     <div class="f"><label for="q">ヒーロー検索</label><input id="q" type="search" placeholder="例: アナ" size="10"></div>
     <div class="f" id="tStableWrap"><label>絞り込み</label>
       <div class="chk"><label><input type="checkbox" id="stableOnly">「安定」（最低勝率50%以上）のヒーローだけ</label><label><input type="checkbox" id="onlyStable">アジアと韓国の平均で1つの表にする</label></div></div>
@@ -324,7 +324,8 @@ function loadPeriod(id){
 }
 if (st.rankAvg && !st.cols) st.cols = "avg";
 if (!["min","avg"].includes(st.sortKey)) st.sortKey = st.tSort === "avg" ? "avg" : "min";
-const ctl = ["period","regShow","mode","input","map","role","cols"];
+if (!Array.isArray(st.roles)) st.roles = st.role ? [st.role] : [];
+const ctl = ["period","regShow","mode","input","map","cols"];
 for (const k of ctl){ if (st[k] != null && [...$("#"+k).options].some(o=>o.value===st[k])) $("#"+k).value = st[k]; }
 for (const k of ctl) $("#"+k).addEventListener("change", render);
 // rank checkboxes for the ランク帯比較 view (default: Gold / Platinum / Emerald)
@@ -335,17 +336,19 @@ $("#tRanks").innerHTML = TIERS.filter(t=>t[0]!=="All").map(([v,j])=>`<label><inp
       const cur = (st.tRanks || ["Gold","Platinum","Emerald"]).filter(v=>v!==c.value);
       st.tRanks = c.checked ? [...cur, c.value] : cur; render(); }); } }
 $("#q").addEventListener("input", render);
+for (const c of document.querySelectorAll("#roles input")){ c.checked = st.roles.includes(c.value);
+  c.addEventListener("change", ()=>{ st.roles = [...document.querySelectorAll("#roles input:checked")].map(x=>x.value); render(); }); }
 
 function save(){
-  const o = {sortKey:st.sortKey, tRanks:st.tRanks, onlyStable:$("#onlyStable").checked, stableOnly:$("#stableOnly").checked};
+  const o = {roles:st.roles, sortKey:st.sortKey, tRanks:st.tRanks, onlyStable:$("#onlyStable").checked, stableOnly:$("#stableOnly").checked};
   for (const k of ctl) o[k] = $("#"+k).value;
   try{ localStorage.setItem("owwr-v4", JSON.stringify(o)); }catch(e){}
 }
 
 // ---- data access
 function heroes(){
-  const role = $("#role").value, q = $("#q").value.trim().toLowerCase();
-  return Object.entries(D.heroes).filter(([id,h])=>(q || !role || h.role===role) &&
+  const roles = st.roles || [], q = $("#q").value.trim().toLowerCase();
+  return Object.entries(D.heroes).filter(([id,h])=>(q || !roles.length || roles.includes(h.role)) &&
     (!q || (h.ja||"").toLowerCase().includes(q) || (h.en||"").toLowerCase().includes(q) || (h.ko||"").includes(q) || id.includes(q)))
     .map(([id,h])=>({id,...h}));
 }
@@ -385,6 +388,7 @@ function render(){
   $("#note").innerHTML = notes.join("");
   { const t = o => o.options[o.selectedIndex]?.text.replace(/（.*?）/g,"") || "";
     const parts = [t($("#period")), t($("#mode")), t($("#input")), pid?"":t($("#map")), $("#mode").value==="0"?"":(st.tRanks || ["Gold","Platinum","Emerald"]).map(r=>TIERS.find(x=>x[0]===r)?.[1].replace("＆チャンピオン","")).join("/")].filter(Boolean);
+    if ((st.roles||[]).length) parts.push(st.roles.map(r=>ROLE_JA[r]).join("/"));
     $("#fSum").textContent = parts.join("・"); }
   renderTiers();
 }
