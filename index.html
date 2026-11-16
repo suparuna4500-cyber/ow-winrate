@@ -421,7 +421,7 @@ function renderTiers(){
   const stableIn = reg => { const T = ranks.map(([t])=>tierTable(reg, t, map)); const set = new Set();
     for (const h of heroes()){ const wr = T.map(tb=>tb?.[h.id]?.[0]).filter(x=>x!=null); if (wr.length===ranks.length && wr.every(x=>x>=50)) set.add(h.id); }
     return set; };
-  const only = $("#onlyStable").checked;
+  const only = $("#onlyStable").checked || bOnly;   // 「両方で安定」のときも1つの表にまとめる
   const bothSet = bOnly ? (()=>{ const a = stableIn("Asia"), k = stableIn("Korea"); return new Set([...a].filter(x=>k.has(x))); })() : null;
   // 平均表：アジアと韓国の数字を帯ごとに平均（片方しかない値はそのまま）
   const avgTable = t => { const a = tierTable("Asia", t, map), k = tierTable("Korea", t, map); if (!a && !k) return null;
