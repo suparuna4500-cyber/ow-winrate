@@ -330,7 +330,10 @@ for (const k of ctl) $("#"+k).addEventListener("change", render);
 // rank checkboxes for the ランク帯比較 view (default: Gold / Platinum / Emerald)
 $("#tRanks").innerHTML = TIERS.filter(t=>t[0]!=="All").map(([v,j])=>`<label><input type="checkbox" value="${v}">${j}</label>`).join("");
 { const def = st.tRanks || ["Gold","Platinum","Emerald"];
-  for (const c of document.querySelectorAll("#tRanks input")){ c.checked = def.includes(c.value); c.addEventListener("change", ()=>{ st.tRanks = [...document.querySelectorAll("#tRanks input:checked")].map(x=>x.value); render(); }); } }
+  for (const c of document.querySelectorAll("#tRanks input")){ c.checked = def.includes(c.value); c.addEventListener("change", ()=>{
+      // 選んだ順に並べる（チェックした順に左から）
+      const cur = (st.tRanks || ["Gold","Platinum","Emerald"]).filter(v=>v!==c.value);
+      st.tRanks = c.checked ? [...cur, c.value] : cur; render(); }); } }
 $("#q").addEventListener("input", render);
 
 function save(){
@@ -397,7 +400,7 @@ function tierTable(region, tier, map){
 function renderTiers(){
   const map = curMap();
   const qp = $("#mode").value === "0";
-  const ranks = qp ? [TIERS[0]] : TIERS.filter(t=>t[0]!=="All" && (st.tRanks || ["Gold","Platinum","Emerald"]).includes(t[0]));
+  const ranks = qp ? [TIERS[0]] : (st.tRanks || ["Gold","Platinum","Emerald"]).map(v=>TIERS.find(t=>t[0]===v)).filter(Boolean);
   const rj = r => r[1].replace("＆チャンピオン","");
   const mapJa = D.maps.find(m=>m.id===map)?.ja;
   if (!ranks.length){ $("#out").innerHTML = `<div class="card"><div class="empty">比べるランク帯を1つ以上選んでください。</div></div>`; return; }
