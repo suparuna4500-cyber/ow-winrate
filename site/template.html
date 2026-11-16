@@ -5,18 +5,49 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>OW 勝率 韓国×アジア</title>
 <style>
-:root{
+/* themes: 白 / 黒 / 薄緑 / 深緑 / 空色 */
+:root,[data-theme="dgreen"]{
   color-scheme: dark;
   --bg:#0d2b1c; --surface:#123624; --surface-2:#1a432e; --line:#285a40;
   --text:#f0f3ef; --text-2:#c4d2c8; --muted:#8fa596;
   --kr:#3987e5; --as:#d95926; --am:#199e70; --eu:#c98500;
-  --pos:#3987e5; --neg:#e66767; --mid:#3a4a40;
-  --accent:#3987e5;
+  --pos:#3987e5; --neg:#e66767; --mid:#3a4a40; --accent:#3987e5;
+  --tc-as:color-mix(in srgb, #d95926 24%, #141a17); --tc-kr:color-mix(in srgb, #3987e5 24%, #141a17);
+}
+[data-theme="black"]{
+  color-scheme: dark;
+  --bg:#000000; --surface:#121211; --surface-2:#1e1e1c; --line:#2c2c29;
+  --text:#f0efec; --text-2:#c3c2b7; --muted:#8f8e86;
+  --kr:#3987e5; --as:#d95926; --pos:#3987e5; --neg:#e66767; --mid:#383835; --accent:#3987e5;
+  --tc-as:color-mix(in srgb, #d95926 18%, #121211); --tc-kr:color-mix(in srgb, #3987e5 18%, #121211);
+}
+[data-theme="white"]{
+  color-scheme: light;
+  --bg:#f6f6f4; --surface:#fcfcfb; --surface-2:#f0efec; --line:#e2e1dc;
+  --text:#0b0b0b; --text-2:#52514e; --muted:#8a8984;
+  --kr:#2a78d6; --as:#eb6834; --pos:#2a78d6; --neg:#e34948; --mid:#f0efec; --accent:#2a78d6;
+  --tc-as:color-mix(in srgb, #eb6834 10%, #fcfcfb); --tc-kr:color-mix(in srgb, #2a78d6 10%, #fcfcfb);
+}
+[data-theme="lgreen"]{
+  color-scheme: light;
+  --bg:#e3f2e6; --surface:#f4faf5; --surface-2:#e6f1e8; --line:#c8dfcd;
+  --text:#0d1f12; --text-2:#3f5546; --muted:#76907d;
+  --kr:#2a78d6; --as:#eb6834; --pos:#2a78d6; --neg:#e34948; --mid:#eef2ee; --accent:#2a78d6;
+  --tc-as:color-mix(in srgb, #eb6834 12%, #fbfbf8); --tc-kr:color-mix(in srgb, #2a78d6 12%, #fbfbf8);
+}
+[data-theme="sky"]{
+  color-scheme: light;
+  --bg:#dceefb; --surface:#f3f9fe; --surface-2:#e3f0fa; --line:#c3dbef;
+  --text:#0b1a2b; --text-2:#3d5368; --muted:#7690a8;
+  --kr:#2a78d6; --as:#eb6834; --pos:#2a78d6; --neg:#e34948; --mid:#eef1f4; --accent:#2a78d6;
+  --tc-as:color-mix(in srgb, #eb6834 12%, #fbfbfa); --tc-kr:color-mix(in srgb, #2a78d6 12%, #fbfbfa);
 }
 *{box-sizing:border-box}
 [hidden]{display:none!important}
 body{margin:0;background:var(--bg);color:var(--text);font:14px/1.5 system-ui,-apple-system,"Hiragino Sans","Yu Gothic UI","Meiryo",sans-serif}
-header{padding:18px 20px 6px;max-width:1440px;margin:0 auto}
+header{padding:18px 20px 6px;max-width:1440px;margin:0 auto;position:relative}
+.themebar{position:absolute;right:20px;top:16px;display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text-2)}
+.themebar select{min-height:30px;padding:4px 8px}
 h1{font-size:20px;margin:0 0 2px;letter-spacing:.02em}
 .sub{color:var(--text-2);font-size:12.5px}
 .sub a{color:var(--text-2)}
@@ -104,8 +135,8 @@ tbody tr:hover td{background:var(--surface-2)}
 .tgrid2 .badge{font-size:9px;padding:0 4px;margin:1px 0 0}
 .tgrid2 .nm{line-height:1.25}
 .tgrid2 .rank{width:14px;margin-right:3px}
-.tc-Asia{--cardbg:color-mix(in srgb, var(--as) 24%, #141a17)}
-.tc-Korea{--cardbg:color-mix(in srgb, var(--kr) 24%, #141a17)}
+.tc-Asia{--cardbg:var(--tc-as)}
+.tc-Korea{--cardbg:var(--tc-kr)}
 .tcard{background:var(--cardbg);border-color:color-mix(in srgb, var(--cardbg) 70%, var(--line))}
 .tcard thead th,.tcard td.hero{background:var(--cardbg)}
 .tcard .tth{background:var(--cardbg)}
@@ -144,6 +175,7 @@ footer{max-width:1440px;margin:0 auto;padding:0 20px 30px;color:var(--muted);fon
 </head>
 <body>
 <header>
+  <div class="themebar"><label for="theme">背景</label><select id="theme"><option value="white">白</option><option value="black">黒</option><option value="lgreen">薄緑</option><option value="dgreen">深緑</option><option value="sky">空色</option></select></div>
   <h1>オーバーウォッチ 勝率 — 韓国 × アジア</h1>
   <div class="sub" id="asof"></div>
 </header>
@@ -179,6 +211,7 @@ footer{max-width:1440px;margin:0 auto;padding:0 20px 30px;color:var(--muted);fon
 </footer>
 <div id="tip" role="tooltip"></div>
 <script>
+(function(){ let t = "dgreen"; try{ t = localStorage.getItem("owwr-theme") || t; }catch(e){} document.documentElement.dataset.theme = t; })();
 const D = /*__DATA__*/null;
 const REG = {Korea:{ja:"韓国",c:"--kr"},Asia:{ja:"アジア",c:"--as"},Americas:{ja:"米州",c:"--am"},Europe:{ja:"欧州",c:"--eu"}};
 const TIERS = [["All","全ランク"],["Bronze","ブロンズ"],["Silver","シルバー"],["Gold","ゴールド"],["Platinum","プラチナ"],["Emerald","エメラルド"],["Diamond","ダイヤモンド"],["Master","マスター"],["Grandmaster","グランドマスター＆チャンピオン"]];
@@ -363,6 +396,8 @@ function showTip(e, title, rows){
   tip.style.left = x+"px"; tip.style.top = y+"px";
 }
 
+$("#theme").value = document.documentElement.dataset.theme;
+$("#theme").addEventListener("change", e=>{ document.documentElement.dataset.theme = e.target.value; try{ localStorage.setItem("owwr-theme", e.target.value); }catch(_){} render(); });
 $("#asof").innerHTML = `韓国（ネクソン公式）とアジア（Blizzard公式）の全ヒーローの勝率・ピック率・BAN率を並べて表示。マップ・ランク・モード別。`;
 render();
 </script>
