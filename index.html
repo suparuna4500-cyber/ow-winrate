@@ -7,6 +7,7 @@
 <style>
 /* themes: 白 / 黒 / 薄緑 / 深緑 / 空色 */
 :root,[data-theme="dgreen"]{
+  --grid:rgba(255,255,255,.20); --grid-strong:rgba(255,255,255,.36);
   color-scheme: dark;
   --bg:#0d2b1c; --surface:#123624; --surface-2:#1a432e; --line:#285a40;
   --text:#f0f3ef; --text-2:#c4d2c8; --muted:#8fa596;
@@ -15,6 +16,7 @@
   --tc-as:color-mix(in srgb, #d95926 24%, #141a17); --tc-kr:color-mix(in srgb, #3987e5 24%, #141a17);
 }
 [data-theme="black"]{
+  --grid:rgba(255,255,255,.18); --grid-strong:rgba(255,255,255,.34);
   color-scheme: dark;
   --bg:#000000; --surface:#121211; --surface-2:#1e1e1c; --line:#2c2c29;
   --text:#f0efec; --text-2:#c3c2b7; --muted:#8f8e86;
@@ -22,6 +24,7 @@
   --tc-as:color-mix(in srgb, #d95926 18%, #121211); --tc-kr:color-mix(in srgb, #3987e5 18%, #121211);
 }
 [data-theme="white"]{
+  --grid:rgba(0,0,0,.16); --grid-strong:rgba(0,0,0,.30);
   color-scheme: light;
   --bg:#f6f6f4; --surface:#fcfcfb; --surface-2:#f0efec; --line:#e2e1dc;
   --text:#0b0b0b; --text-2:#52514e; --muted:#8a8984;
@@ -29,6 +32,7 @@
   --tc-as:color-mix(in srgb, #eb6834 10%, #fcfcfb); --tc-kr:color-mix(in srgb, #2a78d6 10%, #fcfcfb);
 }
 [data-theme="lgreen"]{
+  --grid:rgba(0,40,10,.18); --grid-strong:rgba(0,40,10,.32);
   color-scheme: light;
   --bg:#e3f2e6; --surface:#f4faf5; --surface-2:#e6f1e8; --line:#c8dfcd;
   --text:#0d1f12; --text-2:#3f5546; --muted:#76907d;
@@ -36,6 +40,7 @@
   --tc-as:color-mix(in srgb, #eb6834 12%, #fbfbf8); --tc-kr:color-mix(in srgb, #2a78d6 12%, #fbfbf8);
 }
 [data-theme="sky"]{
+  --grid:rgba(0,25,50,.18); --grid-strong:rgba(0,25,50,.32);
   color-scheme: light;
   --bg:#dceefb; --surface:#f3f9fe; --surface-2:#e3f0fa; --line:#c3dbef;
   --text:#0b1a2b; --text-2:#3d5368; --muted:#7690a8;
@@ -141,7 +146,11 @@ tbody tr:hover td{background:var(--surface-2)}
 .tcard thead th,.tcard td.hero{background:var(--cardbg)}
 .tcard .tth{background:var(--cardbg)}
 .tcard tbody tr:hover td.hero,.tcard tbody tr:hover td.sm{background:color-mix(in srgb, var(--cardbg) 80%, var(--text) 6%)}
-.tcard td,.tcard th{border-bottom-color:color-mix(in srgb, var(--cardbg) 75%, var(--line))}
+.tcard td,.tcard th{border-bottom:1px solid var(--grid)}
+.tcard{border:1px solid var(--grid-strong)}
+.tcard thead tr:last-child th{border-bottom:1px solid var(--grid-strong)}
+.tcard td.w{border-bottom:1px solid var(--grid)}
+.tcard .tv th.gs,.tcard .tv td.gs{border-left:2px solid var(--grid-strong)}
 .tgrid2.one{grid-template-columns:minmax(0,1fr);max-width:900px}
 .rgrid.one{grid-template-columns:minmax(0,1fr);max-width:520px}
 .rgrid{grid-template-columns:repeat(auto-fit,minmax(min(100%,400px),1fr));max-width:1000px}
