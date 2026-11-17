@@ -273,7 +273,7 @@ footer{max-width:1440px;margin:0 auto;padding:0 20px 30px;color:var(--muted);fon
       <div class="chk" id="roles"><label><input type="checkbox" value="tank">タンク</label><label><input type="checkbox" value="damage">ダメージ</label><label><input type="checkbox" value="support">サポート</label></div></div>
     <div class="f"><label for="q">ヒーロー検索</label><input id="q" type="search" placeholder="例: アナ" size="10"></div>
     <div class="f" id="tStableWrap"><label>絞り込み</label>
-      <div class="chk"><label><input type="checkbox" id="stableOnly">「安定」（最低勝率50%以上）のヒーローだけ</label><label><input type="checkbox" id="bothStable">アジアと韓国の両方で「安定」のヒーローだけ</label><label><input type="checkbox" id="onlyStable">アジアと韓国の平均で1つの表にする</label></div></div>
+      <div class="chk"><label><input type="checkbox" id="stableOnly">最低勝率51%以上のヒーローだけ</label><label><input type="checkbox" id="bothStable">アジアと韓国の両方で「安定」のヒーローだけ</label><label><input type="checkbox" id="onlyStable">アジアと韓国の平均で1つの表にする</label></div></div>
   </div>
   <div class="note" id="note"></div>
   <div id="out"></div>
@@ -416,6 +416,7 @@ function renderTiers(){
   const multi = ranks.length > 1;
   const bOnly = $("#bothStable").checked;
   const sOnly = $("#stableOnly").checked || bOnly;
+  const minThr = $("#stableOnly").checked && !bOnly ? 51 : 50;   // 「最低勝率51%以上だけ」の基準
   const fixed = rmin || !multi;   // 並び替えできない（並び順固定）
   const sortBy = rmin || !multi ? "min" : st.sortKey;
   const sth = (k, label, cls="gs") => !fixed ? `<th class="${cls} sortable${sortBy===k?" sorted":""}" data-sort="${k}" title="クリックで並び替え">${label}${sortBy===k?'<span class="arr">▼</span>':""}</th>` : `<th class="${cls}">${label}</th>`;
@@ -438,7 +439,7 @@ function renderTiers(){
       const wr = v.map(x=>x[0]).filter(x=>x!=null), full = wr.length===ranks.length;
       return {h, v, min: full ? Math.min(...wr) : null, avg: wr.length ? wr.reduce((a,b)=>a+b,0)/wr.length : null,
               up: full && wr.every(x=>x>=50), down: full && wr.every(x=>x<50)};
-    }).filter(o=>o.v.some(x=>x[0]!=null) && (!bothSet || bothSet.has(o.h.id)) && (!sOnly || (o.min!=null && o.min>=50)));
+    }).filter(o=>o.v.some(x=>x[0]!=null) && (!bothSet || bothSet.has(o.h.id)) && (!sOnly || (o.min!=null && o.min>=minThr)));
     const mean = xs => { xs = xs.filter(x=>x!=null); return xs.length ? xs.reduce((a,b)=>a+b,0)/xs.length : null; };
     if (ravg) rows.forEach(o=>{ o.v = [[0,1,2].map(i=>mean(o.v.map(x=>x[i])))]; });
     const key = o => sortBy==="avg" ? o.avg : o.min;
@@ -453,7 +454,7 @@ function renderTiers(){
       if (multi && !ravg && !rmin) h += cell(o.avg,"gs");
       h += cell(o.min,"gs") + `</tr>`;
     });
-    if (!rows.length) h += `<tr><td colspan="${(rmin?0:ravg?1:ranks.length)*2+2+(multi && !ravg && !rmin ? 1 : 0)}" class="empty">${period() && !(pinfo().regions||[]).includes(reg) ? `この期間は${REG[reg].ja}のデータがありません` : bOnly ? "アジアと韓国の両方で「安定」のヒーローはいません（ランク帯やロールを変えてみてください）" : sOnly ? "この条件で「安定」のヒーローはいません（ランク帯やロールを変えてみてください）" : "この条件のデータはありません"}</td></tr>`;
+    if (!rows.length) h += `<tr><td colspan="${(rmin?0:ravg?1:ranks.length)*2+2+(multi && !ravg && !rmin ? 1 : 0)}" class="empty">${period() && !(pinfo().regions||[]).includes(reg) ? `この期間は${REG[reg].ja}のデータがありません` : bOnly ? "アジアと韓国の両方で「安定」のヒーローはいません（ランク帯やロールを変えてみてください）" : sOnly ? "この条件で最低勝率51%以上のヒーローはいません（ランク帯やロールを変えてみてください）" : "この条件のデータはありません"}</td></tr>`;
     return h + `</tbody></table></div>`;
   };
   let html = `<div class="legend"><b>${mapJa}・${ranks.map(rj).join(" / ")}</b><span><span class="badge">安定</span>＝選んだ帯すべてで勝率50%以上　<span class="badge n">苦戦</span>＝すべてで50%未満</span><span class="ramp">${[42,45,48,50,52,55,58].map(v=>`<span style="background:${divColor(v,50,8)}"></span>`).join("")}</span><span>勝率 42% → 58%</span>${only?"":"<span>各表はその地域の数字で並べ替えています</span>"}${qp?"<span>クイック・プレイはランク区分がないため全ランクのみ</span>":""}${multi && !rmin?`<span><b>${sortBy==="avg"?"平均勝率":"最低勝率"}が高い順</b>（「平均勝率」「最低勝率」の列名をクリックで並び替え）</span>`:""}${rmin?"<span><b>最低勝率だけを表示中</b>（選んだ帯の中で一番低い勝率。高い順）</span>":""}${bOnly?`<span><b>アジアと韓国の両方で安定：${bothSet.size}人</b></span>`:""}<span class="swipe">← 表は横にスクロールできます →</span>${only?`<span><b>数字はアジアと韓国の平均</b>（「安定」「苦戦」も平均の勝率で判定）</span>`:""}</div>`;
