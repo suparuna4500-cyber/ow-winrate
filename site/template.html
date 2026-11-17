@@ -428,10 +428,20 @@ function renderTiers(){
   const only = $("#onlyStable").checked || bOnly;   // 「両方で安定」のときも1つの表にまとめる
   const bothSet = bOnly ? (()=>{ const a = stableIn("Asia"), k = stableIn("Korea"); return new Set([...a].filter(x=>k.has(x))); })() : null;
   // 平均表：アジアと韓国の数字を帯ごとに平均（片方しかない値はそのまま）
-  const avgTable = t => { const a = tierTable("Asia", t, map), k = tierTable("Korea", t, map); if (!a && !k) return null;
+  const avgTable = t => { const a = tierTable("Asia", t, map), k = tierTable("Korea", t, map); if (!a || !k) return null;   // 片方しかないときは平均を出さない
     const out = {}; for (const id of new Set([...Object.keys(a||{}), ...Object.keys(k||{})])){
       out[id] = [0,1,2].map(i=>{ const xs = [a?.[id]?.[i], k?.[id]?.[i]].filter(x=>x!=null); return xs.length ? xs.reduce((p,q)=>p+q,0)/xs.length : null; }); }
     return out; };
+  // データがないときの理由
+  const hasAll = (r, t) => { const c = (src()||{})[`${r}_${$("#mode").value}_${r==="Korea"?"PC":$("#input").value}_${t}`]; return !!(c && c.m["all-maps"]); };
+  const whyEmpty = reg => {
+    const regs = reg === "Avg" ? ["Asia","Korea"] : [reg];
+    for (const r of regs){
+      if (period() && !(pinfo().regions||[]).includes(r)) return `この期間は${REG[r].ja}のデータがありません`;
+      if (r === "Korea" && $("#input").value === "Console") return reg === "Avg" ? "韓国はPCのデータだけなので、コンソールでは平均を出せません" : "韓国はPCのデータだけです（コンソールなし）";
+      if (map !== "all-maps" && ranks.some(([t])=>hasAll(r,t)) && ranks.every(([t])=>!tierTable(r,t,map))) return `${REG[r].ja}は今、公式がマップ別の数字を出していないため、マップ別は表示できません（「全マップ」なら見られます）`;
+    }
+    return null; };
   const oneTable = reg => {
     const T = ranks.map(([t])=> reg === "Avg" ? avgTable(t) : tierTable(reg, t, map));
     let rows = heroes().map(h=>{
@@ -454,7 +464,7 @@ function renderTiers(){
       if (multi && !ravg && !rmin) h += cell(o.avg,"gs");
       h += cell(o.min,"gs") + `</tr>`;
     });
-    if (!rows.length) h += `<tr><td colspan="${(rmin?0:ravg?1:ranks.length)*2+2+(multi && !ravg && !rmin ? 1 : 0)}" class="empty">${period() && !(pinfo().regions||[]).includes(reg) ? `この期間は${REG[reg].ja}のデータがありません` : bOnly ? "アジアと韓国の両方で「安定」のヒーローはいません（ランク帯やロールを変えてみてください）" : sOnly ? "この条件で最低勝率51%以上のヒーローはいません（ランク帯やロールを変えてみてください）" : "この条件のデータはありません"}</td></tr>`;
+    if (!rows.length) h += `<tr><td colspan="${(rmin?0:ravg?1:ranks.length)*2+2+(multi && !ravg && !rmin ? 1 : 0)}" class="empty">${whyEmpty(reg) || (period() && !(pinfo().regions||[]).includes(reg) ? `この期間は${REG[reg].ja}のデータがありません` : bOnly ? "アジアと韓国の両方で「安定」のヒーローはいません（ランク帯やロールを変えてみてください）" : sOnly ? "この条件で最低勝率51%以上のヒーローはいません（ランク帯やロールを変えてみてください）" : "この条件のデータはありません")}</td></tr>`;
     return h + `</tbody></table></div>`;
   };
   let html = `<div class="legend"><b>${mapJa}・${ranks.map(rj).join(" / ")}</b><span><span class="badge">安定</span>＝選んだ帯すべてで勝率50%以上　<span class="badge n">苦戦</span>＝すべてで50%未満</span><span class="ramp">${[42,45,48,50,52,55,58].map(v=>`<span style="background:${divColor(v,50,8)}"></span>`).join("")}</span><span>勝率 42% → 58%</span>${only?"":"<span>各表はその地域の数字で並べ替えています</span>"}${qp?"<span>クイック・プレイはランク区分がないため全ランクのみ</span>":""}${multi && !rmin?`<span><b>${sortBy==="avg"?"平均勝率":"最低勝率"}が高い順</b>（「平均勝率」「最低勝率」の列名をクリックで並び替え）</span>`:""}${rmin?"<span><b>最低勝率だけを表示中</b>（選んだ帯の中で一番低い勝率。高い順）</span>":""}${bOnly?`<span><b>アジアと韓国の両方で安定：${bothSet.size}人</b></span>`:""}<span class="swipe">← 表は横にスクロールできます →</span>${only?`<span><b>数字はアジアと韓国の平均</b>（「安定」「苦戦」も平均の勝率で判定）</span>`:""}</div>`;

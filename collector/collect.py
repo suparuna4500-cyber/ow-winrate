@@ -157,8 +157,16 @@ def pack(per_map):
 def write_combo(key, per_map):
     d = os.path.join(DATA, "latest")
     os.makedirs(d, exist_ok=True)
+    packed = pack(per_map)
+    # 公式がマップ指定を無視して全マップと同じ数字を返すことがある（2026/11〜のBlizzard）。
+    # その場合はマップ別として誤解されないよう、マップ別のデータは保存しない。
+    allm = packed["m"].get("all-maps")
+    same = [k for k, v in packed["m"].items() if k != "all-maps" and v == allm]
+    if allm and len(same) >= 3:
+        for k in same:
+            del packed["m"][k]
     with open(os.path.join(d, key + ".json"), "w", encoding="utf-8") as f:
-        json.dump(pack(per_map), f, separators=(",", ":"))
+        json.dump(packed, f, separators=(",", ":"))
 
 
 def update_index(meta, asof):
