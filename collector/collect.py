@@ -67,9 +67,29 @@ def get(url, kind):
 
 
 # ---------- Blizzard ----------
+# このサイト内では 競技="2"・クイック="0" で保存しているが、公式のパラメータ値は変わることがある
+# （2026/11/17ごろ 競技が rq=2 → rq=1 に変更）。公式ページの選択肢から毎回読み取る。
+BLIZZ_RQ = {"2": "1", "0": "0"}
+
+
+def resolve_blizz_rq():
+    try:
+        html = get("https://overwatch.blizzard.com/en-us/rates/", "text")
+        sel = re.search(r'id="filter-rq-select".*?</select>', html, re.S)
+        opts = re.findall(r'<option[^>]*value="(\d+)"[^>]*>\s*([^<]+)', sel.group(0) if sel else html)
+        for v, label in opts:
+            if "Competitive" in label:
+                BLIZZ_RQ["2"] = v
+            elif "Quick" in label:
+                BLIZZ_RQ["0"] = v
+    except Exception as e:  # noqa
+        print("rq resolve failed, using defaults:", e)
+    print("Blizzard rq mapping:", BLIZZ_RQ)
+
+
 def blizz_job(region, rq, inp, tier, mp):
     url = (f"https://overwatch.blizzard.com/en-us/rates/data/?input={inp}&map={mp}"
-           f"&region={region}&role=All&rq={rq}&tier={tier}")
+           f"&region={region}&role=All&rq={BLIZZ_RQ.get(rq, rq)}&tier={tier}")
     d = get(url, "json")
     out, meta = {}, {}
     for x in d["rates"]["rates"]:
@@ -225,6 +245,8 @@ def main():
     ap.add_argument("--only", choices=["Korea", "Blizzard"], default=None)
     ap.add_argument("--workers", type=int, default=4)
     a = ap.parse_args()
+    if a.only != "Korea":
+        resolve_blizz_rq()
 
     jobs = []
     if a.only != "Korea":
